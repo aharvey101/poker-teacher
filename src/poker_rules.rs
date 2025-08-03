@@ -117,7 +117,13 @@ fn combinations(cards: &[Card], k: usize) -> Vec<Vec<Card>> {
 
 fn evaluate_five_card_hand(cards: &[Card]) -> HandEvaluation {
     if cards.len() != 5 {
-        panic!("Hand evaluation requires exactly 5 cards");
+        error!("Hand evaluation requires exactly 5 cards, got {}", cards.len());
+        return HandEvaluation {
+            rank: HandRank::HighCard,
+            primary_value: 0,
+            secondary_value: 0,
+            kickers: vec![0; 5],
+        };
     }
     
     let mut sorted_cards = cards.to_vec();

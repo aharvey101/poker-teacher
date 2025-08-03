@@ -9,12 +9,15 @@ mod game_controller;
 mod poker_rules;
 mod betting;
 mod ai_player;
+mod betting_ui;
+mod teaching;
 
 use cards::Deck;
 use game_state::{GameState, GameData};
 use player::{Player, PlayerType, HumanPlayer, AIPlayer, AIDifficulty};
 use game_controller::GameController;
 use ai_player::{AIPlayerComponent, AIPersonality};
+use betting_ui::HumanPlayerInput;
 
 fn main() {
     App::new()
@@ -30,9 +33,12 @@ fn main() {
         .init_state::<GameState>()
         .init_resource::<Deck>()
         .init_resource::<GameData>()
+        .init_resource::<game_state::GamePosition>()
         .init_resource::<GameController>()
         .init_resource::<betting::BettingRound>()
-        .add_systems(Startup, (setup, ui::setup_ui))
+        .init_resource::<betting_ui::HumanPlayerInput>()
+        .init_resource::<teaching::TeachingState>()
+        .add_systems(Startup, (setup, ui::setup_ui, betting_ui::setup_betting_ui, teaching::setup_teaching_ui))
         .add_systems(
             Update,
             (
@@ -44,7 +50,29 @@ fn main() {
                 // Betting systems
                 betting::ai_player_system,
                 betting::check_betting_round_complete,
+            ),
+        )
+        .add_systems(
+            Update,
+            (
+                // Betting UI systems
+                betting_ui::manage_betting_ui_visibility,
+                betting_ui::handle_betting_buttons,
+                betting_ui::handle_raise_adjustment,
+                betting_ui::update_betting_button_text,
+                betting_ui::reset_raise_amount_on_new_hand,
                 
+                // Teaching systems
+                teaching::handle_teaching_input,
+                teaching::provide_contextual_explanations,
+                teaching::explain_hand_rankings,
+                teaching::highlight_valid_actions,
+                teaching::provide_hand_analysis,
+            ),
+        )
+        .add_systems(
+            Update,
+            (
                 // Rendering systems
                 rendering::render_player_cards,
                 rendering::render_community_cards,

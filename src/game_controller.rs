@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use crate::cards::Deck;
 use crate::player::{Player, PlayerType};
-use crate::game_state::{GameState, GameData};
+use crate::game_state::{GameState, GameData, GamePosition};
 use crate::betting::BettingRound;
 use crate::poker_rules::{evaluate_hand, hand_rank_name};
 
@@ -29,11 +29,31 @@ pub fn game_state_controller(
     current_state: Res<State<GameState>>,
     mut deck: ResMut<Deck>,
     mut game_data: ResMut<GameData>,
+    mut game_position: ResMut<GamePosition>,
     mut players: Query<&mut Player>,
     mut betting_round: ResMut<BettingRound>,
 ) {
     if !controller.auto_advance {
         return;
+    }
+    
+    // Check if we should pause auto-advance for human player input
+    match current_state.get() {
+        GameState::PreFlop | GameState::Flop | GameState::Turn | GameState::River => {
+            // Check if it's a human player's turn to act
+            if let Some(current_player_id) = betting_round.peek_next_player() {
+                for player in players.iter() {
+                    if player.id == current_player_id && !player.has_folded {
+                        if matches!(player.player_type, crate::player::PlayerType::Human) {
+                            // It's a human player's turn - don't auto-advance
+                            return;
+                        }
+                        break;
+                    }
+                }
+            }
+        },
+        _ => {}, // Allow auto-advance for non-betting phases
     }
     
     controller.state_timer.tick(time.delta());
@@ -47,7 +67,7 @@ pub fn game_state_controller(
                 
                 // Reset all players for new round
                 for mut player in players.iter_mut() {
-                    player.clear_cards();
+                    player.clear_hand();
                     player.current_bet = 0;
                     player.has_folded = false;
                 }
@@ -62,6 +82,9 @@ pub fn game_state_controller(
             },
             
             GameState::Dealing => {
+                // First post blinds before dealing
+                post_blinds(&mut players, &game_position, &mut game_data);
+                
                 // Deal 2 cards to each player
                 for mut player in players.iter_mut() {
                     for _ in 0..2 {
@@ -71,15 +94,18 @@ pub fn game_state_controller(
                     }
                 }
                 
-                info!("Cards dealt to all players");
+                info!("Cards dealt to all players, blinds posted");
                 
-                // Start pre-flop betting
+                // Start pre-flop betting with proper betting order
                 let active_players: Vec<u32> = players
                     .iter()
                     .filter(|p| !p.has_folded)
                     .map(|p| p.id)
                     .collect();
                 betting_round.reset_for_new_round(active_players);
+                
+                // Set current bet to big blind amount
+                game_data.current_bet = game_position.big_blind_amount;
                 
                 game_state.set(GameState::PreFlop);
                 controller.state_timer = Timer::from_seconds(0.5, TimerMode::Once); // Faster for betting
@@ -187,7 +213,7 @@ pub fn game_state_controller(
             
             GameState::Showdown => {
                 // Evaluate hands and determine winner
-                determine_winner(&players, &game_data);
+                determine_winner(&mut players, &game_data, &mut game_position);
                 
                 game_state.set(GameState::GameOver);
                 controller.state_timer = Timer::from_seconds(5.0, TimerMode::Once);
@@ -195,16 +221,59 @@ pub fn game_state_controller(
             },
             
             GameState::GameOver => {
-                info!("Round complete, starting new round...");
-                game_state.set(GameState::Setup);
-                controller.state_timer = Timer::from_seconds(2.0, TimerMode::Once);
-                controller.state_timer.reset();
+                // Check for game end conditions
+                let players_with_chips: Vec<&Player> = players.iter().filter(|p| p.chips > 0).collect();
+                
+                if players_with_chips.len() <= 1 {
+                    // Game is over - only one player has chips left
+                    if let Some(winner) = players_with_chips.first() {
+                        let winner_name = match winner.player_type {
+                            PlayerType::Human => "Human",
+                            PlayerType::AI => "AI",
+                        };
+                        info!("🎉 GAME OVER! {} Player {} wins the entire game with ${} chips!", 
+                              winner_name, winner.id, winner.chips);
+                    } else {
+                        info!("🎉 GAME OVER! All players are eliminated.");
+                    }
+                    
+                    // Reset the game after 10 seconds
+                    controller.state_timer = Timer::from_seconds(10.0, TimerMode::Once);
+                    if controller.state_timer.finished() {
+                        // Reset all players' chips for a new game
+                        for mut player in players.iter_mut() {
+                            player.chips = 1000; // Reset to starting chips
+                            player.clear_hand();
+                            player.current_bet = 0;
+                            player.has_folded = false;
+                        }
+                        info!("🔄 Starting new game! All players reset to $1000 chips.");
+                        game_state.set(GameState::Setup);
+                        controller.state_timer = Timer::from_seconds(2.0, TimerMode::Once);
+                        controller.state_timer.reset();
+                    }
+                } else {
+                    // Multiple players still have chips - continue to next round
+                    info!("Round complete, starting new round...");
+                    info!("Players remaining: {}", players_with_chips.len());
+                    for player in &players_with_chips {
+                        let player_name = match player.player_type {
+                            PlayerType::Human => "Human",
+                            PlayerType::AI => "AI",
+                        };
+                        info!("  {} Player {}: ${} chips", player_name, player.id, player.chips);
+                    }
+                    
+                    game_state.set(GameState::Setup);
+                    controller.state_timer = Timer::from_seconds(2.0, TimerMode::Once);
+                    controller.state_timer.reset();
+                }
             },
         }
     }
 }
 
-fn determine_winner(players: &Query<&mut Player>, game_data: &GameData) {
+fn determine_winner(players: &mut Query<&mut Player>, game_data: &GameData, game_position: &mut GamePosition) {
     let mut evaluations = Vec::new();
     
     // Evaluate each active player's hand
@@ -247,6 +316,21 @@ fn determine_winner(players: &Query<&mut Player>, game_data: &GameData) {
         PlayerType::AI => "AI",
     };
     
+    // CRITICAL FIX: Actually transfer chips to winner!
+    for mut player in players.iter_mut() {
+        if player.id == *winner_id {
+            player.chips += game_data.pot;
+            info!(
+                "💰 CHIPS TRANSFERRED: {} Player {} receives ${} (new total: ${})",
+                winner_name,
+                winner_id,
+                game_data.pot,
+                player.chips
+            );
+            break;
+        }
+    }
+    
     info!(
         "🏆 WINNER: {} Player {} with {} wins pot of ${}!",
         winner_name,
@@ -254,6 +338,9 @@ fn determine_winner(players: &Query<&mut Player>, game_data: &GameData) {
         hand_rank_name(&winner_evaluation.rank),
         game_data.pot
     );
+    
+    // Advance dealer button for next hand
+    game_position.advance_dealer_button();
 }
 
 // System to display current game state in console
@@ -301,4 +388,44 @@ pub fn toggle_auto_advance(
             info!("Game auto-advance PAUSED (press SPACE to resume)");
         }
     }
+}
+
+// Helper function to post blinds at the start of each hand
+fn post_blinds(
+    players: &mut Query<&mut Player>,
+    game_position: &GamePosition,
+    game_data: &mut GameData,
+) {
+    let small_blind_player = game_position.get_small_blind_player();
+    let big_blind_player = game_position.get_big_blind_player();
+    
+    info!("💰 Posting blinds - SB: Player {} ({}), BB: Player {} ({})", 
+          small_blind_player, game_position.small_blind_amount,
+          big_blind_player, game_position.big_blind_amount);
+    
+    // Post small blind
+    for mut player in players.iter_mut() {
+        if player.id == small_blind_player {
+            let blind_amount = game_position.small_blind_amount.min(player.chips);
+            player.chips = player.chips.saturating_sub(blind_amount);
+            game_data.pot += blind_amount;
+            info!("🔸 Player {} posts small blind: {} chips (remaining: {})", 
+                  player.id, blind_amount, player.chips);
+            break;
+        }
+    }
+    
+    // Post big blind
+    for mut player in players.iter_mut() {
+        if player.id == big_blind_player {
+            let blind_amount = game_position.big_blind_amount.min(player.chips);
+            player.chips = player.chips.saturating_sub(blind_amount);
+            game_data.pot += blind_amount;
+            info!("🔹 Player {} posts big blind: {} chips (remaining: {})", 
+                  player.id, blind_amount, player.chips);
+            break;
+        }
+    }
+    
+    info!("💰 Total pot after blinds: {} chips", game_data.pot);
 }

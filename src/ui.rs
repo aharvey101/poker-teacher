@@ -74,8 +74,14 @@ pub fn setup_player_ui(
     mut commands: Commands,
     players: Query<&Player>,
     existing_ui: Query<Entity, With<PlayerUI>>,
+    game_state: Res<State<GameState>>,
 ) {
-    // Remove existing player UI
+    // Only update when game state changes or player data might have changed
+    if !game_state.is_changed() {
+        return;
+    }
+    
+    // Remove existing player UI only when something changed
     for entity in existing_ui.iter() {
         commands.entity(entity).despawn_recursive();
     }

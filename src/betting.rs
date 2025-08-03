@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 use crate::player::{Player, PlayerType, AIPlayer};
 use crate::game_state::GameState;
-use crate::ai_player::{make_advanced_ai_decision, AIPersonality, AIPlayerComponent};
+use crate::ai_player::{make_advanced_ai_decision, AIPlayerComponent};
 use crate::cards::Card;
+use crate::betting_ui::HumanPlayerInput;
 
 // Player betting actions
 #[derive(Debug, Clone, PartialEq)]
@@ -50,17 +51,24 @@ impl BettingRound {
         self.current_bet = 0;
         self.players_to_act = player_ids;
         self.betting_complete = false;
+        info!("Betting round reset - players to act: {:?}", self.players_to_act);
     }
     
     pub fn is_complete(&self) -> bool {
         self.betting_complete || self.players_to_act.is_empty()
     }
     
+    pub fn peek_next_player(&self) -> Option<u32> {
+        self.players_to_act.last().copied()
+    }
+    
     pub fn next_player(&mut self) -> Option<u32> {
         if let Some(player_id) = self.players_to_act.pop() {
+            info!("Next player to act: {}, remaining: {:?}", player_id, self.players_to_act);
             Some(player_id)
         } else {
             self.betting_complete = true;
+            info!("Betting round complete - no more players to act");
             None
         }
     }
@@ -90,6 +98,7 @@ pub fn ai_player_system(
     mut betting_round: ResMut<BettingRound>,
     game_state: Res<State<GameState>>,
     game_data: Res<crate::game_state::GameData>,
+    mut human_input: ResMut<HumanPlayerInput>,
 ) {
     // Only process AI actions during betting phases
     match game_state.get() {
@@ -102,7 +111,7 @@ pub fn ai_player_system(
     }
     
     // Get the next player to act
-    if let Some(current_player_id) = betting_round.next_player() {
+    if let Some(current_player_id) = betting_round.peek_next_player() {
         // First pass: count active players and find current player
         let active_players = players.iter()
             .filter(|(p, _)| !p.has_folded)
@@ -142,11 +151,18 @@ pub fn ai_player_system(
                     }
                 },
                 PlayerType::Human => {
-                    // For now, let AI make decisions for human too
-                    // TODO: Replace with human input system
-                    make_ai_decision(&player_data, &betting_round)
+                    // Check if human has made a decision
+                    if let Some(human_action) = human_input.pending_action.take() {
+                        human_action
+                    } else {
+                        // Human hasn't decided yet, don't remove them from queue
+                        return;
+                    }
                 },
             };
+            
+            // Only remove the player from the queue after they've made a decision
+            betting_round.next_player(); // This pops the player from the queue
             
             // Second pass: apply the action to the actual player
             for (mut player, _) in players.iter_mut() {

@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use crate::cards::{Card, Suit, Rank};
 use crate::player::Player;
+use crate::game_state::GameState;
 
 // Constants for card rendering
 const CARD_WIDTH: f32 = 60.0;
@@ -67,13 +68,21 @@ pub fn render_player_cards(
     mut commands: Commands,
     players: Query<&Player>,
     rendered_cards: Query<Entity, With<RenderedCard>>,
+    game_state: Res<State<GameState>>,
 ) {
-    // Clear existing rendered cards
-    for entity in rendered_cards.iter() {
-        commands.entity(entity).despawn_recursive();
+    // Only update when game state changes to avoid constant re-rendering
+    if !game_state.is_changed() {
+        return;
     }
     
-    // Render cards for each player
+    // Clear existing rendered cards only when something changed
+    for entity in rendered_cards.iter() {
+        if let Some(entity_commands) = commands.get_entity(entity) {
+            entity_commands.despawn_recursive();
+        }
+    }
+    
+    // Render cards for all players
     for player in players.iter() {
         let card_spacing = CARD_WIDTH + 10.0;
         let start_x = player.position.x - (card_spacing * (player.hole_cards.len() as f32 - 1.0)) / 2.0;
@@ -96,9 +105,16 @@ pub fn render_community_cards(
     game_data: Res<crate::game_state::GameData>,
     rendered_community_cards: Query<Entity, (With<RenderedCard>, Without<CardBack>)>,
 ) {
-    // Clear existing community cards
+    // Only update when game data changes
+    if !game_data.is_changed() {
+        return;
+    }
+    
+    // Clear existing community cards only when something changed
     for entity in rendered_community_cards.iter() {
-        commands.entity(entity).despawn_recursive();
+        if let Some(entity_commands) = commands.get_entity(entity) {
+            entity_commands.despawn_recursive();
+        }
     }
     
     // Render community cards in the center
@@ -209,8 +225,14 @@ pub fn render_card_backs_for_ai(
     mut commands: Commands,
     players: Query<&Player>,
     card_backs: Query<Entity, With<CardBack>>,
+    game_state: Res<State<GameState>>,
 ) {
-    // Clear existing card backs
+    // Only update when game state changes
+    if !game_state.is_changed() {
+        return;
+    }
+    
+    // Clear existing card backs only when something changed
     for entity in card_backs.iter() {
         commands.entity(entity).despawn_recursive();
     }

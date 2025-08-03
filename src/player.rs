@@ -43,12 +43,21 @@ impl Player {
         self.hole_cards.push(card);
     }
     
-    pub fn clear_cards(&mut self) {
-        self.hole_cards.clear();
+    pub fn is_all_in(&self) -> bool {
+        self.chips == 0 && !self.has_folded
+    }
+    
+    pub fn is_eliminated(&self) -> bool {
+        self.chips == 0 && self.has_folded
     }
     
     pub fn can_act(&self) -> bool {
-        !self.has_folded && self.chips > 0
+        !self.has_folded && !self.is_all_in()
+    }
+    
+    pub fn clear_hand(&mut self) {
+        self.hole_cards.clear();
+        self.has_folded = false;
     }
     
     pub fn fold(&mut self) {
