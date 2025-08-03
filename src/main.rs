@@ -11,6 +11,9 @@ mod betting;
 mod ai_player;
 mod betting_ui;
 mod teaching;
+mod audio;
+mod game_speed;
+mod animations;
 
 use cards::Deck;
 use game_state::{GameState, GameData};
@@ -30,6 +33,9 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugins(audio::AudioPlugin)
+        .add_plugins(game_speed::GameSpeedPlugin)
+        .add_plugins(animations::AnimationPlugin)
         .init_state::<GameState>()
         .init_resource::<Deck>()
         .init_resource::<GameData>()

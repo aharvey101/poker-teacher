@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use crate::player::{Player, PlayerType};
 use crate::betting::{PlayerAction, BettingRound};
 use crate::game_state::GameState;
+use crate::audio::AudioEvent;
 
 // Betting UI Components
 #[derive(Component)]
@@ -243,6 +244,7 @@ pub fn handle_betting_buttons(
     mut human_input: ResMut<HumanPlayerInput>,
     betting_round: Res<BettingRound>,
     players: Query<&Player>,
+    mut audio_events: EventWriter<AudioEvent>,
 ) {
     // Find current human player using betting round
     let current_human_player = if let Some(current_id) = betting_round.peek_next_player() {
@@ -262,20 +264,32 @@ pub fn handle_betting_buttons(
             Interaction::Pressed => {
                 *color = BUTTON_PRESSED.into();
                 
+                // Trigger button click sound
+                audio_events.send(AudioEvent::ButtonClick);
+                
                 // Process the betting action
                 let action = match betting_button.action {
-                    BettingButtonAction::Fold => Some(PlayerAction::Fold),
+                    BettingButtonAction::Fold => {
+                        audio_events.send(AudioEvent::Fold);
+                        Some(PlayerAction::Fold)
+                    },
                     BettingButtonAction::Check => {
                         // Check if we can actually check (no bet to call)
                         let call_amount = betting_round.current_bet.saturating_sub(human_player.current_bet);
                         if call_amount == 0 {
+                            audio_events.send(AudioEvent::Call);
                             Some(PlayerAction::Check)
                         } else {
+                            audio_events.send(AudioEvent::Call);
                             Some(PlayerAction::Call) // Convert to call if there's a bet
                         }
                     },
-                    BettingButtonAction::Call => Some(PlayerAction::Call),
+                    BettingButtonAction::Call => {
+                        audio_events.send(AudioEvent::Call);
+                        Some(PlayerAction::Call)
+                    },
                     BettingButtonAction::Raise => {
+                        audio_events.send(AudioEvent::Raise);
                         Some(PlayerAction::Raise(human_input.raise_amount))
                     },
                 };

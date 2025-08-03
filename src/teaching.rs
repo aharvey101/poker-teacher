@@ -179,6 +179,16 @@ pub fn setup_teaching_ui(mut commands: Commands) {
     info!("   R - Show basic betting rules");
     info!("   ESC - Hide current explanation");
     info!("📖 Tutorial mode is ON - you'll get explanations during play!");
+    
+    info!("🎮 PHASE 7 GAME CONTROLS:");
+    info!("   SPACE - Pause/resume auto-advance");
+    info!("   P - Pause/resume game");
+    info!("   , (comma) - Slow down game speed");
+    info!("   . (period) - Speed up game speed");
+    info!("   1 - Reset speed to normal (1.0x)");
+    info!("   M - Mute/unmute audio");
+    info!("   + - Increase volume");
+    info!("   - - Decrease volume");
 }
 
 // System to update teaching message display
