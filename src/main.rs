@@ -68,6 +68,7 @@ fn main() {
                 teaching::explain_hand_rankings,
                 teaching::highlight_valid_actions,
                 teaching::provide_hand_analysis,
+                teaching::update_teaching_display,
             ),
         )
         .add_systems(
