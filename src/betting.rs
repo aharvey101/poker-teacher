@@ -1,6 +1,8 @@
 use bevy::prelude::*;
-use crate::player::{Player, PlayerType};
+use crate::player::{Player, PlayerType, AIPlayer};
 use crate::game_state::GameState;
+use crate::ai_player::{make_advanced_ai_decision, AIPersonality, AIPlayerComponent};
+use crate::cards::Card;
 
 // Player betting actions
 #[derive(Debug, Clone, PartialEq)]
@@ -84,13 +86,14 @@ fn make_ai_decision(player: &Player, betting_round: &BettingRound) -> PlayerActi
 
 // System to handle AI player decisions
 pub fn ai_player_system(
-    mut players: Query<&mut Player>,
+    mut players: Query<(&mut Player, Option<&AIPlayerComponent>)>,
     mut betting_round: ResMut<BettingRound>,
     game_state: Res<State<GameState>>,
+    game_data: Res<crate::game_state::GameData>,
 ) {
     // Only process AI actions during betting phases
     match game_state.get() {
-        GameState::PreFlop | GameState::Turn | GameState::River => {},
+        GameState::PreFlop | GameState::Flop | GameState::Turn | GameState::River => {},
         _ => return,
     }
     
@@ -100,18 +103,57 @@ pub fn ai_player_system(
     
     // Get the next player to act
     if let Some(current_player_id) = betting_round.next_player() {
-        if let Ok(mut player) = players.get_mut(Entity::from_raw(current_player_id)) {
-            if !player.has_folded {
-                let action = match player.player_type {
-                    PlayerType::AI => make_ai_decision(&player, &betting_round),
-                    PlayerType::Human => {
-                        // For now, let AI make decisions for human too
-                        // TODO: Replace with human input system
-                        make_ai_decision(&player, &betting_round)
-                    },
-                };
-                
-                process_player_action(&mut player, action, &mut betting_round);
+        // First pass: count active players and find current player
+        let active_players = players.iter()
+            .filter(|(p, _)| !p.has_folded)
+            .count();
+        
+        let mut current_player_data: Option<(Player, Option<AIPlayerComponent>)> = None;
+        
+        // Find the current player and clone their data
+        for (player, ai_component) in players.iter() {
+            if player.id == current_player_id && !player.has_folded {
+                current_player_data = Some((
+                    player.clone(),
+                    ai_component.cloned()
+                ));
+                break;
+            }
+        }
+        
+        if let Some((player_data, ai_comp)) = current_player_data {
+            let action = match player_data.player_type {
+                PlayerType::AI => {
+                    // Determine position (simplified - just use player ID for now)
+                    let position = player_data.id as usize;
+                    
+                    // Use advanced AI if component is present, otherwise use simple AI
+                    if let Some(ai_component) = ai_comp {
+                        make_advanced_ai_decision(
+                            &player_data,
+                            &betting_round,
+                            &game_data.community_cards,
+                            &ai_component.personality,
+                            active_players,
+                            position,
+                        )
+                    } else {
+                        make_ai_decision(&player_data, &betting_round)
+                    }
+                },
+                PlayerType::Human => {
+                    // For now, let AI make decisions for human too
+                    // TODO: Replace with human input system
+                    make_ai_decision(&player_data, &betting_round)
+                },
+            };
+            
+            // Second pass: apply the action to the actual player
+            for (mut player, _) in players.iter_mut() {
+                if player.id == current_player_id {
+                    process_player_action(&mut player, action, &mut betting_round);
+                    break;
+                }
             }
         }
     }

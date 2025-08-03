@@ -15,7 +15,7 @@ pub enum PlayerAction {
     Raise(u32), // Amount to raise
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct Player {
     pub id: u32,
     pub player_type: PlayerType,

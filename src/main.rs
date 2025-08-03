@@ -8,11 +8,13 @@ mod ui;
 mod game_controller;
 mod poker_rules;
 mod betting;
+mod ai_player;
 
 use cards::Deck;
 use game_state::{GameState, GameData};
 use player::{Player, PlayerType, HumanPlayer, AIPlayer, AIDifficulty};
 use game_controller::GameController;
+use ai_player::{AIPlayerComponent, AIPersonality};
 
 fn main() {
     App::new()
@@ -76,15 +78,21 @@ fn setup(mut commands: Commands) {
         HumanPlayer,
     ));
     
-    // Spawn AI players
+    // Spawn AI players with advanced AI components
     commands.spawn((
         Player::new(1, PlayerType::AI, 1000, positions[1]),
         AIPlayer { difficulty: AIDifficulty::Beginner },
+        AIPlayerComponent {
+            personality: AIPersonality::beginner(),
+        },
     ));
     
     commands.spawn((
         Player::new(2, PlayerType::AI, 1000, positions[2]),
-        AIPlayer { difficulty: AIDifficulty::Beginner },
+        AIPlayer { difficulty: AIDifficulty::Intermediate },
+        AIPlayerComponent {
+            personality: AIPersonality::intermediate(),
+        },
     ));
     
     println!("Poker Teacher Game Starting!");
