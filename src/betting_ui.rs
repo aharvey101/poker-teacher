@@ -50,13 +50,13 @@ const CALL_BUTTON_COLOR: Color = Color::srgb(0.2, 0.6, 0.2);
 const RAISE_BUTTON_COLOR: Color = Color::srgb(0.2, 0.4, 0.7);
 
 pub fn setup_betting_ui(mut commands: Commands) {
-    // Betting panel for human player (bottom center)
+    // Betting panel for human player (bottom center, moved higher to avoid cards)
     commands
         .spawn(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 left: Val::Percent(25.0),
-                bottom: Val::Px(80.0),
+                bottom: Val::Px(180.0),
                 width: Val::Percent(50.0),
                 height: Val::Px(100.0),
                 padding: UiRect::all(Val::Px(10.0)),
