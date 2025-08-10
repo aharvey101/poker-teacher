@@ -11,7 +11,9 @@ impl From<BettingButtonAction> for PlayerAction {
             BettingButtonAction::Fold => PlayerAction::Fold,
             BettingButtonAction::Check => PlayerAction::Check,
             BettingButtonAction::Call => PlayerAction::Call,
-            BettingButtonAction::Raise => PlayerAction::Raise(20), // Default raise amount
+            BettingButtonAction::Raise => PlayerAction::Raise(20), // Default raise amount, will be updated below
+            BettingButtonAction::IncreaseRaise => PlayerAction::Raise(0), // Placeholder, handled separately
+            BettingButtonAction::DecreaseRaise => PlayerAction::Raise(0), // Placeholder, handled separately
         }
     }
 }
@@ -30,7 +32,23 @@ pub fn handle_unified_input(
     for (betting_button, interaction) in &interaction_query {
         if matches!(*interaction, Interaction::Pressed) {
             info!("Mouse click on button: {:?}", betting_button.action);
-            human_input.pending_action = Some(PlayerAction::from(betting_button.action.clone()));
+            
+            match betting_button.action {
+                BettingButtonAction::IncreaseRaise => {
+                    human_input.raise_amount = (human_input.raise_amount + 5).min(100);
+                    info!("Increased raise amount to: {}", human_input.raise_amount);
+                }
+                BettingButtonAction::DecreaseRaise => {
+                    human_input.raise_amount = (human_input.raise_amount.saturating_sub(5)).max(5);
+                    info!("Decreased raise amount to: {}", human_input.raise_amount);
+                }
+                BettingButtonAction::Raise => {
+                    human_input.pending_action = Some(PlayerAction::Raise(human_input.raise_amount));
+                }
+                _ => {
+                    human_input.pending_action = Some(PlayerAction::from(betting_button.action.clone()));
+                }
+            }
             haptic_feedback.send(HapticFeedbackEvent);
         }
     }
@@ -47,7 +65,24 @@ pub fn handle_unified_input(
                 
                 if button_rect.contains(event.position) {
                     info!("Touch hit button: {:?}", betting_button.action);
-                    human_input.pending_action = Some(PlayerAction::from(betting_button.action.clone()));
+                    
+                    match betting_button.action {
+                        BettingButtonAction::IncreaseRaise => {
+                            human_input.raise_amount = (human_input.raise_amount + 5).min(100);
+                            info!("Touch: Increased raise amount to: {}", human_input.raise_amount);
+                        }
+                        BettingButtonAction::DecreaseRaise => {
+                            human_input.raise_amount = (human_input.raise_amount.saturating_sub(5)).max(5);
+                            info!("Touch: Decreased raise amount to: {}", human_input.raise_amount);
+                        }
+                        BettingButtonAction::Raise => {
+                            human_input.pending_action = Some(PlayerAction::Raise(human_input.raise_amount));
+                        }
+                        _ => {
+                            human_input.pending_action = Some(PlayerAction::from(betting_button.action.clone()));
+                        }
+                    }
+                    
                     haptic_feedback.send(HapticFeedbackEvent);
                     found_button = true;
                     break; // Only handle the first button hit

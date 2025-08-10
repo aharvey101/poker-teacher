@@ -22,6 +22,8 @@ pub enum BettingButtonAction {
     Check,
     Call,
     Raise,
+    IncreaseRaise,
+    DecreaseRaise,
 }
 
 #[derive(Component)]
@@ -120,8 +122,8 @@ pub fn setup_betting_ui(mut commands: Commands) {
                     },
                     ..default()
                 }).with_children(|controls| {
-                    create_small_button(controls, "-", "decrease_raise");
-                    create_small_button(controls, "+", "increase_raise");
+                    create_small_button(controls, "-", BettingButtonAction::DecreaseRaise);
+                    create_small_button(controls, "+", BettingButtonAction::IncreaseRaise);
                 });
             });
             
@@ -164,7 +166,7 @@ fn create_betting_button(
         .insert(action); // Also insert the action as a separate component for easier querying
 }
 
-fn create_small_button(parent: &mut ChildBuilder, text: &str, id: &str) {
+fn create_small_button(parent: &mut ChildBuilder, text: &str, action: BettingButtonAction) {
     parent
         .spawn(ButtonBundle {
             style: Style {
@@ -188,7 +190,8 @@ fn create_small_button(parent: &mut ChildBuilder, text: &str, id: &str) {
                 },
             ));
         })
-        .insert(Name::new(id.to_string()));
+        .insert(BettingButton { action: action.clone() })
+        .insert(action); // Also insert the action as a separate component for easier querying
 }
 
 // System to show/hide betting UI based on game state and current player
@@ -226,29 +229,14 @@ pub fn manage_betting_ui_visibility(
 
 
 
-// System to handle raise amount adjustment
-pub fn handle_raise_adjustment(
-    mut interaction_query: Query<(&Interaction, &Name), (Changed<Interaction>, With<Button>)>,
-    mut human_input: ResMut<HumanPlayerInput>,
+// System to update the raise amount display
+pub fn update_raise_amount_display(
     mut amount_display_query: Query<&mut Text, With<RaiseAmountDisplay>>,
-    betting_round: Res<BettingRound>,
+    human_input: Res<HumanPlayerInput>,
 ) {
-    for (interaction, name) in &mut interaction_query {
-        if matches!(*interaction, Interaction::Pressed) {
-            match name.as_str() {
-                "increase" => {
-                    human_input.raise_amount = (human_input.raise_amount + betting_round.min_raise).min(1000);
-                }
-                "decrease" => {
-                    human_input.raise_amount = human_input.raise_amount.saturating_sub(betting_round.min_raise).max(betting_round.min_raise);
-                }
-                _ => continue,
-            }
-            
-            // Update display
-            if let Ok(mut text) = amount_display_query.get_single_mut() {
-                text.sections[0].value = format!("Raise: ${}", human_input.raise_amount);
-            }
+    if human_input.is_changed() {
+        for mut text in &mut amount_display_query {
+            text.sections[0].value = format!("Raise: ${}", human_input.raise_amount);
         }
     }
 }

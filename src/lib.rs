@@ -81,7 +81,7 @@ pub fn main() {
                 
                 // Betting UI systems
                 betting_ui::manage_betting_ui_visibility,
-                betting_ui::handle_raise_adjustment,
+                betting_ui::update_raise_amount_display,
                 betting_ui::update_betting_button_text,
                 betting_ui::reset_raise_amount_on_new_hand,
             ),

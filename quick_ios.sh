@@ -45,8 +45,18 @@ fi
 echo -e "${BLUE}📱 Installing on simulator...${NC}"
 xcrun simctl install booted "build/Build/Products/debug-iphonesimulator/Teach Poker.app"
 
+# Terminate existing instance if running
+echo -e "${BLUE}🔄 Terminating existing app instance...${NC}"
+xcrun simctl terminate booted $BUNDLE_ID 2>/dev/null || true
+
 echo -e "${BLUE}🎮 Launching app...${NC}"
 xcrun simctl launch booted $BUNDLE_ID
 
 echo -e "${GREEN}✅ App launched successfully!${NC}"
+echo -e "${BLUE}📋 Monitoring app logs (Press Ctrl+C to stop)...${NC}"
 echo -e "${YELLOW}💡 Use 'xcrun simctl list devices' to see all simulators${NC}"
+echo -e "${YELLOW}💡 Touch the betting buttons to see debug logs!${NC}"
+echo ""
+
+# Monitor logs from the app
+xcrun simctl spawn booted log stream --predicate 'processImagePath endswith "Teach Poker"' --style compact
