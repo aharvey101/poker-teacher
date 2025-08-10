@@ -19,7 +19,7 @@ pub struct BettingButton {
 #[derive(Component, Debug, Clone, PartialEq)]
 pub enum BettingButtonAction {
     Fold,
-    #[allow(dead_code)]
+    
     Check,
     Call,
     Raise,
@@ -28,7 +28,7 @@ pub enum BettingButtonAction {
 }
 
 #[derive(Component)]
-#[allow(dead_code)]
+
 pub struct RaiseSlider;
 
 #[derive(Component)]
@@ -51,9 +51,9 @@ impl Default for HumanPlayerInput {
 
 // Button colors
 const BUTTON_NORMAL: Color = Color::rgb(0.3, 0.3, 0.3);
-#[allow(dead_code)]
+
 const BUTTON_HOVER: Color = Color::rgb(0.4, 0.4, 0.4);
-#[allow(dead_code)]
+
 const BUTTON_PRESSED: Color = Color::rgb(0.2, 0.2, 0.2);
 const FOLD_BUTTON_COLOR: Color = Color::rgb(0.7, 0.2, 0.2);
 const CALL_BUTTON_COLOR: Color = Color::rgb(0.2, 0.6, 0.2);

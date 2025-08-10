@@ -12,7 +12,7 @@ pub struct AIPersonality {
     pub aggression: f32,      // 0.0 = passive, 1.0 = very aggressive
     pub tightness: f32,       // 0.0 = loose, 1.0 = very tight
     pub bluff_frequency: f32, // 0.0 = never bluff, 1.0 = bluff often
-    #[allow(dead_code)]
+    
     pub position_awareness: f32, // 0.0 = ignore position, 1.0 = highly position-aware
 }
 

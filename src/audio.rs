@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 // Audio events that can be triggered throughout the game
 #[derive(Event)]
-#[allow(dead_code)]
+#[allow(dead_code)] // Audio system will be implemented in future
 pub enum AudioEvent {
     CardDeal,
     ChipBet,

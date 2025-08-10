@@ -11,7 +11,7 @@ pub struct CardAnimation {
 }
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
+
 pub enum AnimationType {
     Deal,
     Flip,

@@ -7,15 +7,15 @@ use crate::game_state::GameState;
 // Constants for card rendering
 const CARD_WIDTH: f32 = 60.0;
 const CARD_HEIGHT: f32 = 84.0;
-#[allow(dead_code)]
+
 const CARD_CORNER_RADIUS: f32 = 8.0;
 
 // Component to mark rendered cards
 #[derive(Component)]
 pub struct RenderedCard {
-    #[allow(dead_code)]
+    
     pub card: Card,
-    #[allow(dead_code)]
+    
     pub owner_id: Option<u32>, // None for community cards
 }
 

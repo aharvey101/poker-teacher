@@ -1,10 +1,11 @@
 use bevy::prelude::*;
 
-#[derive(States, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, States, Default)]
 pub enum AppState {
     #[default]
-    Running,
-    #[allow(dead_code)]
+    Playing,
+    Paused,
+    #[allow(dead_code)] // Reserved for mobile app lifecycle
     Suspended,
 }
 
@@ -99,7 +100,7 @@ mod tests {
     
     #[test]
     fn test_app_state_transitions() {
-        assert_ne!(AppState::Running, AppState::Suspended);
+        assert_ne!(AppState::Playing, AppState::Suspended);
     }
     
     #[test]
