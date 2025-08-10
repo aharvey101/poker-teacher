@@ -15,3 +15,6 @@ path = "src/main.rs"
 bevy = "0.12"
 rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+chrono = { version = "0.4", features = ["serde"] }

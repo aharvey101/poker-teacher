@@ -328,6 +328,133 @@ mod tests {
         
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::RoyalFlush);
+        assert_eq!(eval.primary_value, 14);
+    }
+    
+    #[test]
+    fn test_straight_flush() {
+        let cards = vec![
+            Card::new(Suit::Spades, Rank::Nine),
+            Card::new(Suit::Spades, Rank::Eight),
+            Card::new(Suit::Spades, Rank::Seven),
+            Card::new(Suit::Spades, Rank::Six),
+            Card::new(Suit::Spades, Rank::Five),
+        ];
+        
+        let eval = evaluate_five_card_hand(&cards);
+        assert_eq!(eval.rank, HandRank::StraightFlush);
+        assert_eq!(eval.primary_value, 9);
+    }
+    
+    #[test]
+    fn test_four_of_a_kind() {
+        let cards = vec![
+            Card::new(Suit::Hearts, Rank::King),
+            Card::new(Suit::Diamonds, Rank::King),
+            Card::new(Suit::Clubs, Rank::King),
+            Card::new(Suit::Spades, Rank::King),
+            Card::new(Suit::Hearts, Rank::Ace),
+        ];
+        
+        let eval = evaluate_five_card_hand(&cards);
+        assert_eq!(eval.rank, HandRank::FourOfAKind);
+        assert_eq!(eval.primary_value, 13); // King
+        assert_eq!(eval.kickers[0], 14); // Ace kicker
+    }
+    
+    #[test]
+    fn test_full_house() {
+        let cards = vec![
+            Card::new(Suit::Hearts, Rank::King),
+            Card::new(Suit::Diamonds, Rank::King),
+            Card::new(Suit::Clubs, Rank::King),
+            Card::new(Suit::Spades, Rank::Ace),
+            Card::new(Suit::Hearts, Rank::Ace),
+        ];
+        
+        let eval = evaluate_five_card_hand(&cards);
+        assert_eq!(eval.rank, HandRank::FullHouse);
+        assert_eq!(eval.primary_value, 13); // Kings
+        assert_eq!(eval.secondary_value, 14); // Aces
+    }
+    
+    #[test]
+    fn test_flush() {
+        let cards = vec![
+            Card::new(Suit::Hearts, Rank::King),
+            Card::new(Suit::Hearts, Rank::Queen),
+            Card::new(Suit::Hearts, Rank::Ten),
+            Card::new(Suit::Hearts, Rank::Eight),
+            Card::new(Suit::Hearts, Rank::Five),
+        ];
+        
+        let eval = evaluate_five_card_hand(&cards);
+        assert_eq!(eval.rank, HandRank::Flush);
+        assert_eq!(eval.primary_value, 13); // King high
+    }
+    
+    #[test]
+    fn test_straight() {
+        let cards = vec![
+            Card::new(Suit::Hearts, Rank::King),
+            Card::new(Suit::Diamonds, Rank::Queen),
+            Card::new(Suit::Clubs, Rank::Jack),
+            Card::new(Suit::Spades, Rank::Ten),
+            Card::new(Suit::Hearts, Rank::Nine),
+        ];
+        
+        let eval = evaluate_five_card_hand(&cards);
+        assert_eq!(eval.rank, HandRank::Straight);
+        assert_eq!(eval.primary_value, 13); // King high
+    }
+    
+    #[test]
+    fn test_low_ace_straight() {
+        let cards = vec![
+            Card::new(Suit::Hearts, Rank::Ace),
+            Card::new(Suit::Diamonds, Rank::Five),
+            Card::new(Suit::Clubs, Rank::Four),
+            Card::new(Suit::Spades, Rank::Three),
+            Card::new(Suit::Hearts, Rank::Two),
+        ];
+        
+        let eval = evaluate_five_card_hand(&cards);
+        assert_eq!(eval.rank, HandRank::Straight);
+        assert_eq!(eval.primary_value, 14); // Ace high (wheel)
+    }
+    
+    #[test]
+    fn test_three_of_a_kind() {
+        let cards = vec![
+            Card::new(Suit::Hearts, Rank::King),
+            Card::new(Suit::Diamonds, Rank::King),
+            Card::new(Suit::Clubs, Rank::King),
+            Card::new(Suit::Spades, Rank::Ace),
+            Card::new(Suit::Hearts, Rank::Queen),
+        ];
+        
+        let eval = evaluate_five_card_hand(&cards);
+        assert_eq!(eval.rank, HandRank::ThreeOfAKind);
+        assert_eq!(eval.primary_value, 13); // King trips
+        assert_eq!(eval.kickers[0], 14); // Ace kicker
+        assert_eq!(eval.kickers[1], 12); // Queen kicker
+    }
+    
+    #[test]
+    fn test_two_pair() {
+        let cards = vec![
+            Card::new(Suit::Hearts, Rank::King),
+            Card::new(Suit::Diamonds, Rank::King),
+            Card::new(Suit::Clubs, Rank::Queen),
+            Card::new(Suit::Spades, Rank::Queen),
+            Card::new(Suit::Hearts, Rank::Ace),
+        ];
+        
+        let eval = evaluate_five_card_hand(&cards);
+        assert_eq!(eval.rank, HandRank::TwoPair);
+        assert_eq!(eval.primary_value, 13); // Kings
+        assert_eq!(eval.secondary_value, 12); // Queens
+        assert_eq!(eval.kickers[0], 14); // Ace kicker
     }
     
     #[test]
@@ -342,6 +469,99 @@ mod tests {
         
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::OnePair);
-        assert_eq!(eval.primary_value, 14); // Ace
+        assert_eq!(eval.primary_value, 14); // Ace pair
+        assert_eq!(eval.kickers[0], 13); // King kicker
+        assert_eq!(eval.kickers[1], 12); // Queen kicker
+        assert_eq!(eval.kickers[2], 11); // Jack kicker
+    }
+    
+    #[test]
+    fn test_high_card() {
+        let cards = vec![
+            Card::new(Suit::Hearts, Rank::Ace),
+            Card::new(Suit::Diamonds, Rank::King),
+            Card::new(Suit::Clubs, Rank::Queen),
+            Card::new(Suit::Spades, Rank::Jack),
+            Card::new(Suit::Hearts, Rank::Nine),
+        ];
+        
+        let eval = evaluate_five_card_hand(&cards);
+        assert_eq!(eval.rank, HandRank::HighCard);
+        assert_eq!(eval.primary_value, 14); // Ace high
+        assert_eq!(eval.kickers[0], 13); // King
+        assert_eq!(eval.kickers[1], 12); // Queen
+        assert_eq!(eval.kickers[2], 11); // Jack
+        assert_eq!(eval.kickers[3], 9); // Nine
+    }
+    
+    #[test]
+    fn test_hand_comparison() {
+        let royal_flush = vec![
+            Card::new(Suit::Hearts, Rank::Ace),
+            Card::new(Suit::Hearts, Rank::King),
+            Card::new(Suit::Hearts, Rank::Queen),
+            Card::new(Suit::Hearts, Rank::Jack),
+            Card::new(Suit::Hearts, Rank::Ten),
+        ];
+        
+        let straight_flush = vec![
+            Card::new(Suit::Spades, Rank::Nine),
+            Card::new(Suit::Spades, Rank::Eight),
+            Card::new(Suit::Spades, Rank::Seven),
+            Card::new(Suit::Spades, Rank::Six),
+            Card::new(Suit::Spades, Rank::Five),
+        ];
+        
+        let royal_eval = evaluate_five_card_hand(&royal_flush);
+        let straight_eval = evaluate_five_card_hand(&straight_flush);
+        
+        assert!(royal_eval > straight_eval);
+    }
+    
+    #[test]
+    fn test_best_hand_from_seven() {
+        let player_cards = vec![
+            Card::new(Suit::Hearts, Rank::Ace),
+            Card::new(Suit::Spades, Rank::Ace),
+        ];
+        
+        let community_cards = vec![
+            Card::new(Suit::Hearts, Rank::King),
+            Card::new(Suit::Diamonds, Rank::King),
+            Card::new(Suit::Clubs, Rank::Queen),
+            Card::new(Suit::Spades, Rank::Jack),
+            Card::new(Suit::Hearts, Rank::Ten),
+        ];
+        
+        let best_hand = evaluate_hand(&player_cards, &community_cards);
+        assert_eq!(best_hand.rank, HandRank::Straight); // A-K-Q-J-10 straight is better than Aces and Kings two pair
+        assert_eq!(best_hand.primary_value, 14); // High card of straight (Ace)
+    }
+    
+    #[test]
+    fn test_invalid_hand_size() {
+        let cards = vec![
+            Card::new(Suit::Hearts, Rank::Ace),
+            Card::new(Suit::Spades, Rank::King),
+            Card::new(Suit::Hearts, Rank::Queen),
+        ]; // Only 3 cards
+        
+        let eval = evaluate_five_card_hand(&cards);
+        assert_eq!(eval.rank, HandRank::HighCard);
+        assert_eq!(eval.primary_value, 0);
+    }
+    
+    #[test]
+    fn test_hand_rank_names() {
+        assert_eq!(hand_rank_name(&HandRank::RoyalFlush), "Royal Flush");
+        assert_eq!(hand_rank_name(&HandRank::StraightFlush), "Straight Flush");
+        assert_eq!(hand_rank_name(&HandRank::FourOfAKind), "Four of a Kind");
+        assert_eq!(hand_rank_name(&HandRank::FullHouse), "Full House");
+        assert_eq!(hand_rank_name(&HandRank::Flush), "Flush");
+        assert_eq!(hand_rank_name(&HandRank::Straight), "Straight");
+        assert_eq!(hand_rank_name(&HandRank::ThreeOfAKind), "Three of a Kind");
+        assert_eq!(hand_rank_name(&HandRank::TwoPair), "Two Pair");
+        assert_eq!(hand_rank_name(&HandRank::OnePair), "One Pair");
+        assert_eq!(hand_rank_name(&HandRank::HighCard), "High Card");
     }
 }

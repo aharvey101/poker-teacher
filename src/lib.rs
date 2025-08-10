@@ -1,21 +1,23 @@
 use bevy::prelude::*;
 
-mod cards;
-mod player;
-mod game_state;
-mod rendering;
-mod ui;
-mod game_controller;
-mod poker_rules;
-mod betting;
-mod ai_player;
-mod betting_ui;
-mod teaching;
-mod audio;
-mod game_speed;
-mod animations;
-mod touch_input;
-mod haptics;
+pub mod cards;
+pub mod player;
+pub mod game_state;
+pub mod rendering;
+pub mod ui;
+pub mod mobile_ui;
+pub mod mobile_cards;
+pub mod game_controller;
+pub mod poker_rules;
+pub mod betting;
+pub mod ai_player;
+pub mod betting_ui;
+pub mod teaching;
+pub mod audio;
+pub mod game_speed;
+pub mod animations;
+pub mod touch_input;
+pub mod haptics;
 mod lifecycle;
 
 use cards::Deck;
@@ -57,14 +59,19 @@ pub fn main() {
         .init_resource::<betting_ui::HumanPlayerInput>()
         .init_resource::<teaching::TeachingState>()
         .add_event::<HapticFeedbackEvent>()
-        .add_systems(Startup, (setup, ui::setup_ui, betting_ui::setup_betting_ui, teaching::setup_teaching_ui))
-        .add_systems(
+        .add_event::<HapticFeedbackEvent>()
+        .add_systems(Startup, (
+            setup, 
+            mobile_ui::setup_mobile_ui, 
+            teaching::setup_teaching_ui
+        ))
+                .add_systems(
             Update,
             (
-                // Mobile-specific systems
+                // Input systems
                 touch_input::handle_unified_input,
+                touch_input::handle_gesture_controls,
                 haptics::handle_haptic_feedback,
-                lifecycle::handle_app_lifecycle,
                 
                 // Game logic systems  
                 game_controller::game_state_controller,
@@ -79,10 +86,10 @@ pub fn main() {
                 betting::ai_player_system,
                 betting::check_betting_round_complete,
                 
-                // Betting UI systems
-                betting_ui::manage_betting_ui_visibility,
+                // Mobile UI systems
+                mobile_ui::update_mobile_player_info,
+                mobile_ui::manage_mobile_teaching_panel,
                 betting_ui::update_raise_amount_display,
-                betting_ui::update_betting_button_text,
                 betting_ui::reset_raise_amount_on_new_hand,
             ),
         )
@@ -100,16 +107,12 @@ pub fn main() {
         .add_systems(
             Update,
             (
-                // Rendering systems
-                rendering::render_player_cards,
-                rendering::render_community_cards,
-                rendering::render_card_backs_for_ai,
+                // Mobile card systems - simplified
+                mobile_cards::update_mobile_cards,
                 
                 // UI systems
-                ui::setup_player_ui,
                 ui::update_pot_display,
                 ui::update_game_phase_display,
-                ui::update_player_ui,
             ),
         )
         .run();

@@ -5,6 +5,8 @@ mod player;
 mod game_state;
 mod rendering;
 mod ui;
+mod mobile_ui;
+mod mobile_cards;
 mod game_controller;
 mod poker_rules;
 mod betting;
@@ -14,6 +16,9 @@ mod teaching;
 mod audio;
 mod game_speed;
 mod animations;
+mod touch_input;
+mod haptics;
+mod lifecycle;
 
 use cards::Deck;
 use game_state::{GameState, GameData};
@@ -26,8 +31,9 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Poker Teacher".into(),
-                resolution: (1024.0, 768.0).into(),
-                resizable: true,
+                resolution: (390.0, 844.0).into(), // iPhone-like aspect ratio
+                resizable: false, // Fixed for mobile
+                fit_canvas_to_parent: true, // Better for mobile web
                 ..default()
             }),
             ..default()
@@ -43,7 +49,13 @@ fn main() {
         .init_resource::<betting::BettingRound>()
         .init_resource::<betting_ui::HumanPlayerInput>()
         .init_resource::<teaching::TeachingState>()
-        .add_systems(Startup, (setup, ui::setup_ui, betting_ui::setup_betting_ui, teaching::setup_teaching_ui))
+        .add_event::<haptics::HapticFeedbackEvent>()
+        .add_systems(Startup, (
+            setup, 
+            // Use mobile UI instead of desktop UI
+            mobile_ui::setup_mobile_ui,
+            teaching::setup_teaching_ui
+        ))
         .add_systems(
             Update,
             (
@@ -60,10 +72,16 @@ fn main() {
         .add_systems(
             Update,
             (
-                // Betting UI systems
-                betting_ui::manage_betting_ui_visibility,
+                // Mobile input systems
+                touch_input::handle_unified_input,
+                touch_input::handle_gesture_controls,
+                
+                // Mobile UI systems
+                mobile_ui::update_mobile_player_info,
+                mobile_ui::manage_mobile_teaching_panel,
+                
+                // Betting UI systems (adapted for mobile)
                 betting_ui::update_raise_amount_display,
-                betting_ui::update_betting_button_text,
                 betting_ui::reset_raise_amount_on_new_hand,
                 
                 // Teaching systems
@@ -77,16 +95,14 @@ fn main() {
         .add_systems(
             Update,
             (
-                // Rendering systems
-                rendering::render_player_cards,
-                rendering::render_community_cards,
-                rendering::render_card_backs_for_ai,
+                // Rendering systems (adapted for mobile)
+                mobile_cards::render_mobile_cards,
+                mobile_cards::update_mobile_cards,
+                mobile_cards::animate_mobile_cards,
                 
-                // UI systems
-                ui::setup_player_ui,
+                // Keep pot display update
                 ui::update_pot_display,
                 ui::update_game_phase_display,
-                ui::update_player_ui,
             ),
         )
         .run();
