@@ -160,7 +160,8 @@ fn create_betting_button(
                 },
             ));
         })
-        .insert(BettingButton { action });
+        .insert(BettingButton { action: action.clone() })
+        .insert(action); // Also insert the action as a separate component for easier querying
 }
 
 fn create_small_button(parent: &mut ChildBuilder, text: &str, id: &str) {

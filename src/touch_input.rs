@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::input::touch::TouchPhase;
 
-use crate::betting_ui::{BettingButtonAction, HumanPlayerInput};
+use crate::betting_ui::{BettingButtonAction, BettingButton, HumanPlayerInput};
 use crate::betting::PlayerAction;
 use crate::haptics::HapticFeedbackEvent;
 
@@ -16,20 +16,46 @@ impl From<BettingButtonAction> for PlayerAction {
     }
 }
 
-pub fn handle_touch_input(
+// Unified input system that handles both touch and mouse input
+pub fn handle_unified_input(
     mut touch_events: EventReader<TouchInput>,
     mut human_input: ResMut<HumanPlayerInput>,
-    button_query: Query<(&Node, &GlobalTransform, &Interaction, &BettingButtonAction)>,
+    // Query for mouse/interaction events
+    interaction_query: Query<(&BettingButton, &Interaction), (Changed<Interaction>, With<Button>)>,
+    // Query for touch events (all buttons)
+    all_button_query: Query<(&Node, &GlobalTransform, &BettingButton), With<Button>>,
     mut haptic_feedback: EventWriter<HapticFeedbackEvent>,
 ) {
+    // Handle mouse/button interactions
+    for (betting_button, interaction) in &interaction_query {
+        if matches!(*interaction, Interaction::Pressed) {
+            info!("Mouse click on button: {:?}", betting_button.action);
+            human_input.pending_action = Some(PlayerAction::from(betting_button.action.clone()));
+            haptic_feedback.send(HapticFeedbackEvent);
+        }
+    }
+    
+    // Handle touch input
     for event in touch_events.read() {
         if event.phase == TouchPhase::Started {
-            for (node, transform, _interaction, action) in &button_query {
+            info!("Touch started at position: {:?}", event.position);
+            
+            let mut found_button = false;
+            for (node, transform, betting_button) in &all_button_query {
                 let button_rect = node.logical_rect(transform);
+                info!("Checking button {:?} at rect: {:?}", betting_button.action, button_rect);
+                
                 if button_rect.contains(event.position) {
-                    human_input.pending_action = Some(PlayerAction::from(action.clone()));
+                    info!("Touch hit button: {:?}", betting_button.action);
+                    human_input.pending_action = Some(PlayerAction::from(betting_button.action.clone()));
                     haptic_feedback.send(HapticFeedbackEvent);
+                    found_button = true;
+                    break; // Only handle the first button hit
                 }
+            }
+            
+            if !found_button {
+                info!("Touch did not hit any button");
             }
         }
     }

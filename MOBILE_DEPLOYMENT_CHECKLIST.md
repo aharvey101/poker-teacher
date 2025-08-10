@@ -22,10 +22,13 @@ This checklist outlines the steps required to port the Bevy-based poker game to 
 
 ## 3. Code & Asset Adaptations
 
-- [ ] **Input System:**
+- [x] **Input System:**
     - [x] Create a new Bevy system to handle `TouchInput` events.
     - [x] Map touch coordinates to UI elements (buttons, sliders).
     - [x] Remove or disable keyboard/mouse-specific input systems.
+    - [x] Create unified input system that handles both touch and mouse input.
+    - [x] Fix button component queries to work with touch events.
+    - [x] Add debug logging for touch events and button detection.
 
 - [ ] **UI Responsiveness:**
     - [x] Refactor UI components to use relative positioning (e.g., `Val::Percent`) instead of fixed pixels.
@@ -40,10 +43,12 @@ This checklist outlines the steps required to port the Bevy-based poker game to 
 ## 4. Build, Test, & Deploy
 
 
-- [ ] **iOS:**
-    - [ ] Connect an iOS device or start a simulator.
-    - [ ] Run `cargo mobile run ios` to build and launch the app.
-    - [ ] Test all features on the device/simulator.
+- [x] **iOS:**
+    - [x] Connect an iOS device or start a simulator.
+    - [x] Run `cargo mobile run ios` to build and launch the app.
+    - [x] Test all features on the device/simulator.
+    - [x] Create CLI scripts for building and deploying to simulator.
+    - [x] Set up Cargo aliases for quick iOS builds.
 
 - [ ] **App Store Preparation:**
     - [ ] Create app icons in various required resolutions.

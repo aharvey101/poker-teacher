@@ -62,7 +62,7 @@ pub fn main() {
             Update,
             (
                 // Mobile-specific systems
-                touch_input::handle_touch_input,
+                touch_input::handle_unified_input,
                 haptics::handle_haptic_feedback,
                 lifecycle::handle_app_lifecycle,
                 
