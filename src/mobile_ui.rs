@@ -1,11 +1,11 @@
 use bevy::prelude::*;
-use crate::betting_ui::{BettingButtonAction, BettingButton, HumanPlayerInput};
-use crate::player::{Player, PlayerType};
-use crate::game_state::GameData;
+use crate::betting_ui::{BettingButtonAction, BettingButton};
+use crate::player::Player;
 
 // Mobile-optimized UI components
 #[derive(Component)]
 pub struct MobilePlayerUI {
+    #[allow(dead_code)]
     pub player_id: u32,
 }
 
@@ -21,7 +21,9 @@ pub struct MobileTeachingPanel;
 // Mobile-friendly constants
 const MOBILE_BUTTON_HEIGHT: f32 = 60.0;
 const MOBILE_TOUCH_PADDING: f32 = 8.0;
+#[allow(dead_code)]
 const MOBILE_BUTTON_BORDER_RADIUS: f32 = 12.0; // Rounded corners
+#[allow(dead_code)]
 const MOBILE_TEXT_SIZE_LARGE: f32 = 24.0;
 const MOBILE_TEXT_SIZE_MEDIUM: f32 = 18.0;
 const MOBILE_TEXT_SIZE_SMALL: f32 = 14.0;
@@ -35,6 +37,7 @@ const MOBILE_ACCENT_RED: Color = Color::rgb(0.85, 0.25, 0.15);
 const MOBILE_ACCENT_BLUE: Color = Color::rgb(0.2, 0.5, 0.85);
 // Enhanced text colors
 const MOBILE_TEXT_PRIMARY: Color = Color::rgb(0.98, 0.98, 0.98);
+#[allow(dead_code)]
 const MOBILE_TEXT_SECONDARY: Color = Color::rgb(0.85, 0.85, 0.85);
 
 pub fn setup_mobile_ui(mut commands: Commands) {
@@ -650,11 +653,11 @@ fn create_mobile_raise_adjust_button(
 
 // System to update mobile UI based on game state
 pub fn update_mobile_player_info(
-    mut player_ui_query: Query<&mut Text, With<MobilePlayerUI>>,
+    _player_ui_query: Query<&mut Text, With<MobilePlayerUI>>,
     players: Query<&Player>,
 ) {
     // Update player information displays
-    for player in players.iter() {
+    for _player in players.iter() {
         // Update chip counts, betting status, etc.
         // Implementation details...
     }
@@ -662,7 +665,7 @@ pub fn update_mobile_player_info(
 
 // System to show/hide mobile teaching panel
 pub fn manage_mobile_teaching_panel(
-    mut teaching_panel_query: Query<&mut Visibility, With<MobileTeachingPanel>>,
+    _teaching_panel_query: Query<&mut Visibility, With<MobileTeachingPanel>>,
     // Add other necessary queries and resources
 ) {
     // Toggle visibility based on game state and user preferences

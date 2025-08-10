@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use bevy::prelude::*;
 use crate::player::{Player, PlayerType};
 use crate::game_state::{GameData, GameState};

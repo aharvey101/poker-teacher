@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use bevy::prelude::*;
 use bevy::ui::{node_bundles::{NodeBundle, ButtonBundle}, Style};
 use bevy::text::TextStyle;

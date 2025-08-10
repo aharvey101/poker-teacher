@@ -4,6 +4,7 @@ use crate::cards::{Card, Suit, Rank};
 // Mobile-optimized card rendering constants
 const MOBILE_CARD_WIDTH: f32 = 50.0;
 const MOBILE_CARD_HEIGHT: f32 = 70.0;
+#[allow(dead_code)]
 const MOBILE_CARD_RADIUS: f32 = 6.0;
 
 // Mobile-friendly card colors with better contrast
@@ -18,7 +19,9 @@ const MOBILE_CARD_BACK: Color = Color::rgb(0.15, 0.25, 0.55); // Richer blue for
 // Component for mobile card display
 #[derive(Component)]
 pub struct MobileCard {
+    #[allow(dead_code)]
     pub card: Card,
+    #[allow(dead_code)]
     pub is_community: bool,
     pub is_face_down: bool,
 }

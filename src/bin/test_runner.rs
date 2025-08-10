@@ -191,7 +191,7 @@ fn test_game_startup() {
     
     println!("Starting game (will run for 10 seconds)...");
     
-    let mut child = Command::new("cargo")
+    let child = Command::new("cargo")
         .args(["run", "--bin", "teach-poker"])
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -234,7 +234,7 @@ fn test_mobile_ui() {
                 // Try to run with mobile UI for a short time
                 println!("Testing mobile UI runtime (5 seconds)...");
                 
-                let mut child = Command::new("cargo")
+                let child = Command::new("cargo")
                     .args(["run"])
                     .stdout(Stdio::null())
                     .stderr(Stdio::piped())

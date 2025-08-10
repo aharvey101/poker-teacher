@@ -104,7 +104,6 @@ impl Default for GameData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::cards::{Card, Suit, Rank};
     
     #[test]
     fn test_game_state_enum_values() {

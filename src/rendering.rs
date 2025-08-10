@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use bevy::prelude::*;
 use crate::cards::{Card, Suit, Rank};
 use crate::player::Player;

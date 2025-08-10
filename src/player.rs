@@ -24,6 +24,7 @@ pub struct Player {
     pub hole_cards: Vec<Card>,
     pub current_bet: u32,
     pub has_folded: bool,
+    #[allow(dead_code)]
     pub position: Vec3, // For rendering position
 }
 
@@ -48,6 +49,7 @@ impl Player {
         self.hole_cards.clear();
     }
     
+    #[allow(dead_code)]
     pub fn place_bet(&mut self, amount: u32) -> bool {
         if amount > self.chips {
             false
@@ -58,10 +60,12 @@ impl Player {
         }
     }
     
+    #[allow(dead_code)]
     pub fn fold(&mut self) {
         self.has_folded = true;
     }
     
+    #[allow(dead_code)]
     pub fn reset_for_new_hand(&mut self) {
         self.has_folded = false;
         self.current_bet = 0;
@@ -72,10 +76,12 @@ impl Player {
         self.chips == 0 && !self.has_folded
     }
     
+    #[allow(dead_code)]
     pub fn can_bet(&self, amount: u32) -> bool {
         !self.has_folded && self.chips >= amount
     }
     
+    #[allow(dead_code)]
     pub fn total_invested(&self) -> u32 {
         self.current_bet
     }

@@ -63,6 +63,7 @@ impl Default for Deck {
 }
 
 impl Deck {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         let mut deck = Self::default();
         deck.shuffle();
@@ -78,6 +79,7 @@ impl Deck {
         self.cards.pop()
     }
     
+    #[allow(dead_code)]
     pub fn cards_remaining(&self) -> usize {
         self.cards.len()
     }
@@ -117,7 +119,7 @@ mod tests {
     
     #[test]
     fn test_deck_shuffle() {
-        let mut deck1 = Deck::default();
+        let deck1 = Deck::default();
         let mut deck2 = Deck::default();
         
         deck2.shuffle();
