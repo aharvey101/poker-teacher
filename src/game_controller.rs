@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::input::Input;
 use crate::cards::Deck;
 use crate::player::{Player, PlayerType};
 use crate::game_state::{GameState, GameData, GamePosition};
@@ -67,7 +68,7 @@ pub fn game_state_controller(
                 
                 // Reset all players for new round
                 for mut player in players.iter_mut() {
-                    player.clear_hand();
+                    player.clear_cards();
                     player.current_bet = 0;
                     player.has_folded = false;
                 }
@@ -243,7 +244,7 @@ pub fn game_state_controller(
                         // Reset all players' chips for a new game
                         for mut player in players.iter_mut() {
                             player.chips = 1000; // Reset to starting chips
-                            player.clear_hand();
+                            player.clear_cards();
                             player.current_bet = 0;
                             player.has_folded = false;
                         }
@@ -377,7 +378,7 @@ pub fn debug_game_state(
 
 // System to pause/resume game controller
 pub fn toggle_auto_advance(
-    input: Res<ButtonInput<KeyCode>>,
+    input: Res<Input<KeyCode>>,
     mut controller: ResMut<GameController>,
 ) {
     if input.just_pressed(KeyCode::Space) {

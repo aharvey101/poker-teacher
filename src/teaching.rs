@@ -1,15 +1,20 @@
 use bevy::prelude::*;
+use bevy::ui::{node_bundles::{NodeBundle, TextBundle}, Style};
+use bevy::text::TextStyle;
 use crate::game_state::GameState;
 use crate::player::{Player, PlayerType};
 
 // Teaching system components
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct TeachingPopup;
 
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct HandRankingGuide;
 
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct TutorialOverlay;
 
 #[derive(Component)]
@@ -48,6 +53,7 @@ impl Default for TeachingState {
 
 // Types of explanations available
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum ExplanationType {
     HandRanking(String),
     BettingRule(String),
@@ -87,16 +93,19 @@ impl TeachingState {
         info!("📚 Teaching: {}", self.current_explanation.as_ref().unwrap_or(&"No explanation".to_string()));
     }
     
+    #[allow(dead_code)]
     pub fn hide_explanation(&mut self) {
         self.show_rule_popup = false;
         self.current_explanation = None;
     }
     
+    #[allow(dead_code)]
     pub fn toggle_tutorial_mode(&mut self) {
         self.tutorial_mode = !self.tutorial_mode;
         info!("📖 Tutorial mode: {}", if self.tutorial_mode { "ON" } else { "OFF" });
     }
     
+    #[allow(dead_code)]
     pub fn toggle_hand_rankings(&mut self) {
         self.show_hand_rankings = !self.show_hand_rankings;
         info!("🃏 Hand rankings guide: {}", if self.show_hand_rankings { "SHOWN" } else { "HIDDEN" });
@@ -112,19 +121,19 @@ pub fn setup_teaching_ui(mut commands: Commands) {
         .spawn(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                left: Val::Px(10.0),
-                bottom: Val::Px(10.0),
-                width: Val::Px(300.0),
-                min_height: Val::Px(40.0),
-                max_height: Val::Px(100.0),
-                padding: UiRect::all(Val::Px(10.0)),
+                left: Val::Percent(2.0),
+                bottom: Val::Percent(2.0),
+                width: Val::Percent(45.0),
+                min_height: Val::Percent(10.0),
+                max_height: Val::Percent(25.0),
+                padding: UiRect::all(Val::Percent(2.0)),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Column,
                 ..default()
             },
-            background_color: Color::srgba(0.1, 0.2, 0.4, 0.8).into(),
-            border_color: Color::srgba(0.3, 0.4, 0.6, 1.0).into(),
+            background_color: Color::rgba(0.1, 0.2, 0.4, 0.8).into(),
+            border_color: Color::rgba(0.3, 0.4, 0.6, 1.0).into(),
             ..default()
         })
         .with_children(|parent| {
@@ -133,7 +142,7 @@ pub fn setup_teaching_ui(mut commands: Commands) {
                     "",
                     TextStyle {
                         font_size: 14.0,
-                        color: Color::srgb(1.0, 1.0, 1.0),
+                        color: Color::rgb(1.0, 1.0, 1.0),
                         ..default()
                     },
                 ))
@@ -145,19 +154,19 @@ pub fn setup_teaching_ui(mut commands: Commands) {
         .spawn(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                right: Val::Px(10.0),
-                bottom: Val::Px(10.0),
-                width: Val::Px(280.0),
-                min_height: Val::Px(60.0),
-                max_height: Val::Px(120.0),
-                padding: UiRect::all(Val::Px(10.0)),
+                right: Val::Percent(2.0),
+                bottom: Val::Percent(2.0),
+                width: Val::Percent(45.0),
+                min_height: Val::Percent(10.0),
+                max_height: Val::Percent(25.0),
+                padding: UiRect::all(Val::Percent(2.0)),
                 justify_content: JustifyContent::FlexStart,
                 align_items: AlignItems::FlexStart,
                 flex_direction: FlexDirection::Column,
                 ..default()
             },
-            background_color: Color::srgba(0.1, 0.4, 0.1, 0.75).into(),
-            border_color: Color::srgba(0.2, 0.6, 0.2, 1.0).into(),
+            background_color: Color::rgba(0.1, 0.4, 0.1, 0.75).into(),
+            border_color: Color::rgba(0.2, 0.6, 0.2, 1.0).into(),
             ..default()
         })
         .with_children(|parent| {
@@ -166,7 +175,7 @@ pub fn setup_teaching_ui(mut commands: Commands) {
                     "",
                     TextStyle {
                         font_size: 13.0,
-                        color: Color::srgb(1.0, 1.0, 1.0),
+                        color: Color::rgb(1.0, 1.0, 1.0),
                         ..default()
                     },
                 ))
@@ -207,30 +216,7 @@ pub fn update_teaching_display(
     }
 }
 
-// System to handle teaching keyboard shortcuts
-pub fn handle_teaching_input(
-    input: Res<ButtonInput<KeyCode>>,
-    mut teaching_state: ResMut<TeachingState>,
-) {
-    if input.just_pressed(KeyCode::KeyT) {
-        teaching_state.toggle_tutorial_mode();
-    }
-    
-    if input.just_pressed(KeyCode::KeyH) {
-        teaching_state.toggle_hand_rankings();
-    }
-    
-    if input.just_pressed(KeyCode::Escape) {
-        teaching_state.hide_explanation();
-    }
-    
-    // Show basic poker rules
-    if input.just_pressed(KeyCode::KeyR) {
-        teaching_state.show_explanation(ExplanationType::BettingRule(
-            "In poker, you can Fold (quit the hand), Call (match the current bet), or Raise (increase the bet)".to_string()
-        ));
-    }
-}
+
 
 // System to provide contextual explanations during gameplay
 pub fn provide_contextual_explanations(
@@ -383,7 +369,7 @@ pub fn highlight_valid_actions(
 pub fn provide_hand_analysis(
     teaching_state: Res<TeachingState>,
     current_state: Res<State<GameState>>,
-    game_data: Res<crate::game_state::GameData>,
+    _game_data: Res<crate::game_state::GameData>,
     betting_round: Res<crate::betting::BettingRound>,
     players: Query<&Player>,
     mut hand_analysis_query: Query<&mut Text, With<HandAnalysisDisplay>>,
@@ -502,6 +488,7 @@ fn rank_value(rank: crate::cards::Rank) -> u8 {
 }
 
 // Helper function to analyze flop situation
+#[allow(dead_code)]
 fn analyze_flop_situation(hole_cards: &[crate::cards::Card], community_cards: &[crate::cards::Card], _betting_round: &crate::betting::BettingRound) {
     if hole_cards.len() != 2 || community_cards.len() < 3 {
         return;
@@ -527,6 +514,7 @@ fn analyze_flop_situation(hole_cards: &[crate::cards::Card], community_cards: &[
 }
 
 // Helper function to analyze turn situation  
+#[allow(dead_code)]
 fn analyze_turn_situation(hole_cards: &[crate::cards::Card], community_cards: &[crate::cards::Card], _betting_round: &crate::betting::BettingRound) {
     if community_cards.len() < 4 {
         return;
@@ -542,6 +530,7 @@ fn analyze_turn_situation(hole_cards: &[crate::cards::Card], community_cards: &[
 }
 
 // Helper function to analyze river situation
+#[allow(dead_code)]
 fn analyze_river_situation(hole_cards: &[crate::cards::Card], community_cards: &[crate::cards::Card], betting_round: &crate::betting::BettingRound) {
     if community_cards.len() < 5 {
         return;

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::cards::{Card, Suit, Rank};
+use crate::cards::{Card, Suit};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -291,6 +291,7 @@ pub fn hand_rank_name(rank: &HandRank) -> &'static str {
     }
 }
 
+#[allow(dead_code)]
 pub fn rank_name(rank: u8) -> &'static str {
     match rank {
         2 => "Two",

@@ -8,6 +8,7 @@ pub enum PlayerType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(dead_code)]
 pub enum PlayerAction {
     Fold,
     Check,
@@ -43,27 +44,33 @@ impl Player {
         self.hole_cards.push(card);
     }
     
+    #[allow(dead_code)]
     pub fn is_all_in(&self) -> bool {
         self.chips == 0 && !self.has_folded
     }
     
+    #[allow(dead_code)]
     pub fn is_eliminated(&self) -> bool {
         self.chips == 0 && self.has_folded
     }
     
+    #[allow(dead_code)]
     pub fn can_act(&self) -> bool {
         !self.has_folded && !self.is_all_in()
     }
     
-    pub fn clear_hand(&mut self) {
+    pub fn clear_cards(&mut self) {
         self.hole_cards.clear();
+        self.current_bet = 0;
         self.has_folded = false;
     }
     
+    #[allow(dead_code)]
     pub fn fold(&mut self) {
         self.has_folded = true;
     }
     
+    #[allow(dead_code)]
     pub fn bet(&mut self, amount: u32) -> u32 {
         let actual_bet = amount.min(self.chips);
         self.chips -= actual_bet;
@@ -77,6 +84,7 @@ pub struct HumanPlayer;
 
 #[derive(Component)]
 pub struct AIPlayer {
+    #[allow(dead_code)]
     pub difficulty: AIDifficulty,
 }
 

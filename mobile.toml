@@ -1,0 +1,8 @@
+[app]
+name = "teach-poker"
+stylized-name = "Teach Poker"
+identifier = "local.teachPoker"
+template-pack = "bevy"
+
+[apple]
+development-team = "X6L963T4W8"

@@ -6,12 +6,15 @@ use crate::game_state::GameState;
 // Constants for card rendering
 const CARD_WIDTH: f32 = 60.0;
 const CARD_HEIGHT: f32 = 84.0;
+#[allow(dead_code)]
 const CARD_CORNER_RADIUS: f32 = 8.0;
 
 // Component to mark rendered cards
 #[derive(Component)]
 pub struct RenderedCard {
+    #[allow(dead_code)]
     pub card: Card,
+    #[allow(dead_code)]
     pub owner_id: Option<u32>, // None for community cards
 }
 
@@ -20,12 +23,12 @@ pub struct RenderedCard {
 pub struct CardBack;
 
 // Colors for suits
-const HEART_COLOR: Color = Color::srgb(0.8, 0.2, 0.2);
-const DIAMOND_COLOR: Color = Color::srgb(0.8, 0.2, 0.2);
-const CLUB_COLOR: Color = Color::srgb(0.1, 0.1, 0.1);
-const SPADE_COLOR: Color = Color::srgb(0.1, 0.1, 0.1);
-const CARD_BACKGROUND: Color = Color::srgb(0.95, 0.95, 0.9);
-const CARD_BACK_COLOR: Color = Color::srgb(0.2, 0.3, 0.6);
+const HEART_COLOR: Color = Color::rgb(0.8, 0.2, 0.2);
+const DIAMOND_COLOR: Color = Color::rgb(0.8, 0.2, 0.2);
+const CLUB_COLOR: Color = Color::rgb(0.1, 0.1, 0.1);
+const SPADE_COLOR: Color = Color::rgb(0.1, 0.1, 0.1);
+const CARD_BACKGROUND: Color = Color::rgb(0.95, 0.95, 0.9);
+const CARD_BACK_COLOR: Color = Color::rgb(0.2, 0.3, 0.6);
 
 pub fn suit_color(suit: Suit) -> Color {
     match suit {
@@ -274,7 +277,7 @@ fn spawn_card_back(commands: &mut Commands, position: Vec3) {
                     "🂠",
                     TextStyle {
                         font_size: 32.0,
-                        color: Color::srgb(0.8, 0.8, 0.9),
+                        color: Color::rgb(0.8, 0.8, 0.9),
                         ..default()
                     },
                 ),

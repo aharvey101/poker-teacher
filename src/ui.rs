@@ -18,10 +18,10 @@ pub struct PotDisplay;
 pub struct GamePhaseDisplay;
 
 // Colors for UI
-const UI_BACKGROUND: Color = Color::srgba(0.1, 0.1, 0.1, 0.8);
-const UI_TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
-const HUMAN_PLAYER_COLOR: Color = Color::srgb(0.2, 0.6, 0.2);
-const AI_PLAYER_COLOR: Color = Color::srgb(0.6, 0.6, 0.2);
+const UI_BACKGROUND: Color = Color::rgba(0.1, 0.1, 0.1, 0.8);
+const UI_TEXT_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
+const HUMAN_PLAYER_COLOR: Color = Color::rgb(0.2, 0.6, 0.2);
+const AI_PLAYER_COLOR: Color = Color::rgb(0.6, 0.6, 0.2);
 
 pub fn setup_ui(mut commands: Commands) {
     // Game info panel (top center)
@@ -29,11 +29,11 @@ pub fn setup_ui(mut commands: Commands) {
         .spawn(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                left: Val::Percent(40.0),
-                top: Val::Px(10.0),
-                width: Val::Percent(20.0),
-                height: Val::Px(80.0),
-                padding: UiRect::all(Val::Px(10.0)),
+                left: Val::Percent(35.0),
+                top: Val::Percent(2.0),
+                width: Val::Percent(30.0),
+                height: Val::Percent(10.0),
+                padding: UiRect::all(Val::Percent(1.0)),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Column,
@@ -95,9 +95,9 @@ pub fn setup_player_ui(
                     Style {
                         position_type: PositionType::Absolute,
                         left: Val::Percent(35.0),
-                        bottom: Val::Px(10.0),
+                        bottom: Val::Percent(2.0),
                         width: Val::Percent(30.0),
-                        height: Val::Px(60.0),
+                        height: Val::Percent(10.0),
                         ..default()
                     },
                     HUMAN_PLAYER_COLOR
@@ -105,19 +105,19 @@ pub fn setup_player_ui(
             },
             PlayerType::AI => {
                 // AI players at top sides
-                let (left_percent, top_px) = if player.id == 1 {
-                    (5.0, 100.0) // Top left
+                let (left_percent, top_percent) = if player.id == 1 {
+                    (5.0, 15.0) // Top left
                 } else {
-                    (70.0, 100.0) // Top right
+                    (70.0, 15.0) // Top right
                 };
                 
                 (
                     Style {
                         position_type: PositionType::Absolute,
                         left: Val::Percent(left_percent),
-                        top: Val::Px(top_px),
+                        top: Val::Percent(top_percent),
                         width: Val::Percent(25.0),
-                        height: Val::Px(60.0),
+                        height: Val::Percent(10.0),
                         ..default()
                     },
                     AI_PLAYER_COLOR
@@ -128,13 +128,13 @@ pub fn setup_player_ui(
         commands
             .spawn(NodeBundle {
                 style: Style {
-                    padding: UiRect::all(Val::Px(8.0)),
+                    padding: UiRect::all(Val::Percent(1.0)),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     flex_direction: FlexDirection::Column,
                     ..ui_position
                 },
-                background_color: BackgroundColor(ui_color.with_alpha(0.8)),
+                background_color: BackgroundColor(ui_color.with_a(0.8)),
                 ..default()
             })
             .with_children(|parent| {
@@ -169,7 +169,7 @@ pub fn setup_player_ui(
                         format!("Bet: ${}", player.current_bet),
                         TextStyle {
                             font_size: 12.0,
-                            color: Color::srgb(0.8, 0.8, 0.2),
+                            color: Color::rgb(0.8, 0.8, 0.2),
                             ..default()
                         },
                     ));
@@ -181,7 +181,7 @@ pub fn setup_player_ui(
                         "FOLDED",
                         TextStyle {
                             font_size: 12.0,
-                            color: Color::srgb(0.8, 0.2, 0.2),
+                            color: Color::rgb(0.8, 0.2, 0.2),
                             ..default()
                         },
                     ));
@@ -235,7 +235,7 @@ pub fn update_player_ui(
             };
             
             let alpha = if is_current_player { 1.0 } else { 0.6 };
-            *bg_color = BackgroundColor(base_color.with_alpha(alpha));
+            *bg_color = BackgroundColor(base_color.with_a(alpha));
             
             // Update text displays
             for &child in children.iter() {

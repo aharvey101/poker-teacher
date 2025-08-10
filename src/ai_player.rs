@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use crate::player::{Player, PlayerType, AIDifficulty};
+use crate::player::{Player, AIDifficulty};
 use crate::betting::{PlayerAction, BettingRound};
-use crate::poker_rules::{HandEvaluation, evaluate_hand};
+use crate::poker_rules::evaluate_hand;
 use crate::cards::Card;
 use rand::Rng;
 
@@ -12,6 +12,7 @@ pub struct AIPersonality {
     pub aggression: f32,      // 0.0 = passive, 1.0 = very aggressive
     pub tightness: f32,       // 0.0 = loose, 1.0 = very tight
     pub bluff_frequency: f32, // 0.0 = never bluff, 1.0 = bluff often
+    #[allow(dead_code)]
     pub position_awareness: f32, // 0.0 = ignore position, 1.0 = highly position-aware
 }
 
@@ -345,16 +346,16 @@ fn apply_personality_adjustments(
     let mut rng = rand::thread_rng();
     
     // Add some randomness (5-15% chance to deviate)
-    if rng.gen::<f32>() < 0.1 {
+    if rng.r#gen::<f32>() < 0.1 {
         match base_action {
             PlayerAction::Call => {
-                if personality.aggression > 0.5 && rng.gen::<f32>() < personality.aggression {
+                if personality.aggression > 0.5 && rng.r#gen::<f32>() < personality.aggression {
                     // Sometimes raise instead of call
                     return PlayerAction::Raise(betting_round.min_raise);
                 }
             },
             PlayerAction::Fold => {
-                if personality.tightness < 0.3 && rng.gen::<f32>() < (1.0 - personality.tightness) {
+                if personality.tightness < 0.3 && rng.r#gen::<f32>() < (1.0 - personality.tightness) {
                     // Sometimes call instead of fold (loose play)
                     return PlayerAction::Call;
                 }
@@ -364,7 +365,7 @@ fn apply_personality_adjustments(
     }
     
     // Occasional bluffs with weak hands
-    if matches!(hand_strength, HandStrength::Weak) && rng.gen::<f32>() < personality.bluff_frequency {
+    if matches!(hand_strength, HandStrength::Weak) && rng.r#gen::<f32>() < personality.bluff_frequency {
         if betting_round.current_bet == 0 {
             return PlayerAction::Raise(betting_round.min_raise);
         }

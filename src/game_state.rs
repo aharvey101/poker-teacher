@@ -1,6 +1,14 @@
 use bevy::prelude::*;
 
 #[derive(States, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum AppState {
+    #[default]
+    Running,
+    #[allow(dead_code)]
+    Suspended,
+}
+
+#[derive(States, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum GameState {
     #[default]
     Setup,
@@ -59,6 +67,7 @@ impl GamePosition {
         info!("🔄 Dealer button moved to Player {}", self.dealer_button);
     }
     
+    #[allow(dead_code)]
     pub fn get_betting_order(&self, is_preflop: bool) -> Vec<u32> {
         let mut order = Vec::new();
         
@@ -93,10 +102,12 @@ impl Default for GameData {
 }
 
 impl GameData {
+    #[allow(dead_code)]
     pub fn next_player(&mut self, total_players: u32) {
         self.current_player = (self.current_player + 1) % total_players;
     }
     
+    #[allow(dead_code)]
     pub fn add_to_pot(&mut self, amount: u32) {
         self.pot += amount;
     }

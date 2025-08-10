@@ -12,6 +12,7 @@ pub struct CardAnimation {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum AnimationType {
     Deal,
     Flip,
@@ -114,6 +115,7 @@ fn cleanup_finished_animations(
 }
 
 // Helper functions to create animations
+#[allow(dead_code)]
 pub fn animate_card_deal(
     commands: &mut Commands,
     entity: Entity,
@@ -130,6 +132,7 @@ pub fn animate_card_deal(
     });
 }
 
+#[allow(dead_code)]
 pub fn animate_chip_movement(
     commands: &mut Commands,
     entity: Entity,
@@ -147,6 +150,7 @@ pub fn animate_chip_movement(
 
 // Particle effect for celebrations
 #[derive(Component)]
+#[allow(dead_code)]
 pub struct ParticleEffect {
     pub particles: Vec<Particle>,
     pub duration: f32,
@@ -154,6 +158,7 @@ pub struct ParticleEffect {
 }
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct Particle {
     pub position: Vec3,
     pub velocity: Vec3,
@@ -162,20 +167,21 @@ pub struct Particle {
     pub color: Color,
 }
 
+#[allow(dead_code)]
 pub fn create_win_particles(commands: &mut Commands, center: Vec3) {
     let mut particles = Vec::new();
     
     // Create 20 particles
     for _ in 0..20 {
-        let angle = rand::random::<f32>() * 2.0 * std::f32::consts::PI;
-        let speed = 50.0 + rand::random::<f32>() * 100.0;
+        let angle = rand::thread_rng().r#gen::<f32>() * 2.0 * std::f32::consts::PI;
+        let speed = 50.0 + rand::thread_rng().r#gen::<f32>() * 100.0;
         
         particles.push(Particle {
             position: center,
             velocity: Vec3::new(angle.cos() * speed, angle.sin() * speed, 0.0),
             lifetime: 2.0,
             max_lifetime: 2.0,
-            color: Color::srgb(1.0, 0.8, 0.0), // Gold color
+            color: Color::rgb(1.0, 0.8, 0.0), // Gold color
         });
     }
     
@@ -190,6 +196,7 @@ pub fn create_win_particles(commands: &mut Commands, center: Vec3) {
 }
 
 // System to update particle effects
+#[allow(dead_code)]
 fn update_particles(
     time: Res<Time>,
     mut commands: Commands,

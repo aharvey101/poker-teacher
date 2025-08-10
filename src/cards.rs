@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use rand::prelude::*;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Suit {

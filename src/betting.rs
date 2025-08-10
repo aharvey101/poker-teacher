@@ -1,8 +1,7 @@
 use bevy::prelude::*;
-use crate::player::{Player, PlayerType, AIPlayer};
+use crate::player::{Player, PlayerType};
 use crate::game_state::GameState;
 use crate::ai_player::{make_advanced_ai_decision, AIPlayerComponent};
-use crate::cards::Card;
 use crate::betting_ui::HumanPlayerInput;
 
 // Player betting actions

@@ -5,6 +5,7 @@ use bevy::prelude::*;
 pub struct GameSpeed {
     pub speed_multiplier: f32,
     pub is_paused: bool,
+    #[allow(dead_code)]
     pub auto_advance: bool,
 }
 
@@ -26,6 +27,7 @@ pub struct GameTimer {
 }
 
 impl GameTimer {
+    #[allow(dead_code)]
     pub fn new(duration_secs: f32) -> Self {
         Self {
             timer: Timer::from_seconds(duration_secs, TimerMode::Once),
@@ -47,47 +49,12 @@ impl Plugin for GameSpeedPlugin {
         app
             .init_resource::<GameSpeed>()
             .add_systems(Update, (
-                handle_speed_controls,
                 update_game_timers,
             ));
     }
 }
 
-// System to handle speed control input
-fn handle_speed_controls(
-    mut game_speed: ResMut<GameSpeed>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-) {
-    // Pause/unpause with SPACE (existing functionality)
-    if keyboard_input.just_pressed(KeyCode::Space) {
-        game_speed.auto_advance = !game_speed.auto_advance;
-        info!("🎮 Game Speed: Auto-advance {}", if game_speed.auto_advance { "ON" } else { "OFF" });
-    }
-    
-    // Speed up with '>' or '.'
-    if keyboard_input.just_pressed(KeyCode::Period) {
-        game_speed.speed_multiplier = (game_speed.speed_multiplier * 1.5).min(4.0);
-        info!("🎮 Game Speed: Speed increased to {:.1}x", game_speed.speed_multiplier);
-    }
-    
-    // Slow down with '<' or ','
-    if keyboard_input.just_pressed(KeyCode::Comma) {
-        game_speed.speed_multiplier = (game_speed.speed_multiplier / 1.5).max(0.25);
-        info!("🎮 Game Speed: Speed decreased to {:.1}x", game_speed.speed_multiplier);
-    }
-    
-    // Reset speed with '1'
-    if keyboard_input.just_pressed(KeyCode::Digit1) {
-        game_speed.speed_multiplier = 1.0;
-        info!("🎮 Game Speed: Speed reset to 1.0x");
-    }
-    
-    // Pause with 'P'
-    if keyboard_input.just_pressed(KeyCode::KeyP) {
-        game_speed.is_paused = !game_speed.is_paused;
-        info!("🎮 Game Speed: Game {}", if game_speed.is_paused { "PAUSED" } else { "RESUMED" });
-    }
-}
+
 
 // System to update all game timers based on current speed
 fn update_game_timers(
@@ -111,11 +78,13 @@ fn update_game_timers(
 }
 
 // Helper function to create a speed-affected timer
+#[allow(dead_code)]
 pub fn create_game_timer(commands: &mut Commands, duration_secs: f32) -> Entity {
     commands.spawn(GameTimer::new(duration_secs)).id()
 }
 
 // Helper function to check if a timer is finished
+#[allow(dead_code)]
 pub fn is_timer_finished(timer_query: &Query<&GameTimer>, entity: Entity) -> bool {
     if let Ok(game_timer) = timer_query.get(entity) {
         game_timer.timer.finished()

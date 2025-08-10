@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 // Audio events that can be triggered throughout the game
 #[derive(Event)]
+#[allow(dead_code)]
 pub enum AudioEvent {
     CardDeal,
     ChipBet,
@@ -40,7 +41,6 @@ impl Plugin for AudioPlugin {
             .init_resource::<AudioSettings>()
             .add_systems(Update, (
                 handle_audio_events,
-                audio_settings_system,
             ));
     }
 }
@@ -73,26 +73,4 @@ fn handle_audio_events(
     }
 }
 
-// System to handle audio settings changes (keyboard shortcuts)
-fn audio_settings_system(
-    mut audio_settings: ResMut<AudioSettings>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-) {
-    // Toggle sound with 'M' key (Mute)
-    if keyboard_input.just_pressed(KeyCode::KeyM) {
-        audio_settings.sound_enabled = !audio_settings.sound_enabled;
-        info!("🔊 Audio: Sound {}", if audio_settings.sound_enabled { "ENABLED" } else { "DISABLED" });
-    }
-    
-    // Volume up with '+'
-    if keyboard_input.just_pressed(KeyCode::Equal) {
-        audio_settings.volume = (audio_settings.volume + 0.1).min(1.0);
-        info!("🔊 Audio: Volume increased to {:.1}", audio_settings.volume);
-    }
-    
-    // Volume down with '-'
-    if keyboard_input.just_pressed(KeyCode::Minus) {
-        audio_settings.volume = (audio_settings.volume - 0.1).max(0.0);
-        info!("🔊 Audio: Volume decreased to {:.1}", audio_settings.volume);
-    }
-}
+

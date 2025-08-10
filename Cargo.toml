@@ -1,9 +1,17 @@
 [package]
 name = "teach-poker"
 version = "0.1.0"
+authors = ["Alexander <alexander@Alexanders-MacBook-Pro.local>"]
 edition = "2021"
 
+[lib]
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "teach-poker"
+path = "src/main.rs"
+
 [dependencies]
-bevy = { version = "0.14", features = ["default"] }
+bevy = "0.12"
 rand = "0.8"
 serde = { version = "1.0", features = ["derive"] }
