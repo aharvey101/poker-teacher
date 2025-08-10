@@ -5,7 +5,7 @@ use crate::player::Player;
 // Mobile-optimized UI components
 #[derive(Component)]
 pub struct MobilePlayerUI {
-    
+    #[allow(dead_code)] // Will be used when player-specific UI is implemented
     pub player_id: u32,
 }
 

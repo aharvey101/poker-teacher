@@ -41,7 +41,7 @@ impl Default for TeachingState {
 
 // Types of explanations available
 #[derive(Debug, Clone)]
-
+#[allow(dead_code)] // Variants will be used when teaching system is fully implemented
 pub enum ExplanationType {
     HandRanking(String),
     BettingRule(String),

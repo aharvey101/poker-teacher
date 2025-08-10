@@ -4,6 +4,7 @@ use bevy::prelude::*;
 pub enum AppState {
     #[default]
     Playing,
+    #[allow(dead_code)] // Will be used when pause functionality is implemented
     Paused,
     #[allow(dead_code)] // Reserved for mobile app lifecycle
     Suspended,

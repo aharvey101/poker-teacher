@@ -5,7 +5,7 @@ use bevy::prelude::*;
 pub struct GameSpeed {
     pub speed_multiplier: f32,
     pub is_paused: bool,
-    
+    #[allow(dead_code)] // Will be used when auto-advance functionality is implemented
     pub auto_advance: bool,
 }
 

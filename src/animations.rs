@@ -11,7 +11,7 @@ pub struct CardAnimation {
 }
 
 #[derive(Debug, Clone)]
-
+#[allow(dead_code)] // Variants will be used when animation system is fully implemented
 pub enum AnimationType {
     Deal,
     Flip,

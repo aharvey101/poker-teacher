@@ -49,7 +49,7 @@ impl Player {
         self.hole_cards.clear();
     }
     
-    
+    #[allow(dead_code)] // Will be used when betting system is fully implemented
     pub fn place_bet(&mut self, amount: u32) -> bool {
         if amount > self.chips {
             false
@@ -60,43 +60,44 @@ impl Player {
         }
     }
     
-    
+    #[allow(dead_code)] // Will be used when betting system is fully implemented
     pub fn fold(&mut self) {
         self.has_folded = true;
     }
     
-    
+    #[allow(dead_code)] // Will be used when hand management is fully implemented
     pub fn reset_for_new_hand(&mut self) {
         self.has_folded = false;
         self.current_bet = 0;
         self.hole_cards.clear();
     }
     
+    #[allow(dead_code)] // Will be used when betting system is fully implemented
     pub fn is_all_in(&self) -> bool {
         self.chips == 0 && !self.has_folded
     }
     
-    
+    #[allow(dead_code)] // Will be used when betting system is fully implemented
     pub fn can_bet(&self, amount: u32) -> bool {
         !self.has_folded && self.chips >= amount
     }
     
-    
+    #[allow(dead_code)] // Will be used when betting system is fully implemented
     pub fn total_invested(&self) -> u32 {
         self.current_bet
     }
     
-    
+    #[allow(dead_code)] // Will be used when game elimination logic is implemented
     pub fn is_eliminated(&self) -> bool {
         self.chips == 0 && self.has_folded
     }
     
-    
+    #[allow(dead_code)] // Will be used when turn management is implemented
     pub fn can_act(&self) -> bool {
         !self.has_folded && !self.is_all_in()
     }
     
-    
+    #[allow(dead_code)] // Will be used when betting system is fully implemented
     pub fn bet(&mut self, amount: u32) -> u32 {
         let actual_bet = amount.min(self.chips);
         self.chips -= actual_bet;
@@ -110,7 +111,7 @@ pub struct HumanPlayer;
 
 #[derive(Component)]
 pub struct AIPlayer {
-    
+    #[allow(dead_code)] // Will be used when AI difficulty system is implemented
     pub difficulty: AIDifficulty,
 }
 

@@ -17,9 +17,9 @@ const MOBILE_CARD_BACK: Color = Color::rgb(0.15, 0.25, 0.55); // Richer blue for
 // Component for mobile card display
 #[derive(Component)]
 pub struct MobileCard {
-    
+    #[allow(dead_code)] // Will be used when card interaction is implemented
     pub card: Card,
-    
+    #[allow(dead_code)] // Will be used when card type differentiation is implemented
     pub is_community: bool,
     pub is_face_down: bool,
 }
