@@ -24,6 +24,8 @@ pub struct MobileCard {
     pub is_face_down: bool,
 }
 
+// This component is no longer used - we use CommunityCardsContainer from mobile_ui instead
+#[allow(dead_code)] // Keeping for backward compatibility
 #[derive(Component)]
 pub struct MobileCardContainer;
 
@@ -66,11 +68,17 @@ pub fn mobile_rank_symbol(rank: Rank) -> &'static str {
 // System to render cards in mobile-optimized layout
 pub fn render_mobile_cards(
     mut commands: Commands,
+    game_data: Res<crate::game_state::GameData>,
     // Query for existing mobile cards
     existing_cards: Query<Entity, With<MobileCard>>,
     // Community cards container
-    community_container: Query<Entity, With<MobileCardContainer>>,
+    community_container: Query<Entity, With<crate::mobile_ui::CommunityCardsContainer>>,
 ) {
+    // Only update when game data changes
+    if !game_data.is_changed() {
+        return;
+    }
+
     // Clear existing cards
     for entity in existing_cards.iter() {
         if let Some(entity_commands) = commands.get_entity(entity) {
@@ -78,46 +86,20 @@ pub fn render_mobile_cards(
         }
     }
 
-    // Find or create community cards container
-    let container = if let Ok(container_entity) = community_container.get_single() {
-        container_entity
-    } else {
-        // Create community cards container if it doesn't exist
-        commands.spawn(MobileCardContainer).id()
-    };
-
-    // This would be called from game logic to update cards
-    // For now, we'll create placeholder cards
-    create_mobile_community_cards(&mut commands, container);
+    // Find community cards container
+    if let Ok(container_entity) = community_container.get_single() {
+        update_mobile_community_cards(&mut commands, container_entity, &game_data);
+    }
 }
 
-fn create_mobile_community_cards(commands: &mut Commands, container: Entity) {
-    // Example community cards (this would come from game state)
-    let example_cards = vec![
-        Card {
-            suit: Suit::Spades,
-            rank: Rank::Ace,
-        },
-        Card {
-            suit: Suit::Hearts,
-            rank: Rank::Three,
-        },
-        Card {
-            suit: Suit::Spades,
-            rank: Rank::Eight,
-        },
-        Card {
-            suit: Suit::Spades,
-            rank: Rank::Seven,
-        },
-        Card {
-            suit: Suit::Hearts,
-            rank: Rank::Two,
-        },
-    ];
-
+fn update_mobile_community_cards(
+    commands: &mut Commands, 
+    container: Entity, 
+    game_data: &crate::game_state::GameData
+) {
+    // Render only the community cards that have been dealt
     commands.entity(container).with_children(|parent| {
-        for card in example_cards {
+        for &card in game_data.community_cards.iter() {
             create_mobile_card_ui(parent, card, false);
         }
     });
@@ -272,15 +254,13 @@ pub fn create_mobile_card_ui(parent: &mut ChildBuilder, card: Card, is_face_down
 
 // System to update mobile cards based on game state
 pub fn update_mobile_cards(
-    // Add game state queries here
-    // players: Query<&Player>,
-    // game_data: Res<GameData>,
+    _game_data: Res<crate::game_state::GameData>,
     mut card_query: Query<&mut MobileCard>,
 ) {
-    // Update card visibility, face-up/face-down state based on game progression
+    // Update card visibility based on game progression
+    // Cards should only be visible if they exist in the game state
     for mut mobile_card in card_query.iter_mut() {
-        // Implementation would depend on game state
-        // For now, just ensure cards are visible
+        // Cards are face-up if they're in the community cards
         mobile_card.is_face_down = false;
     }
 }

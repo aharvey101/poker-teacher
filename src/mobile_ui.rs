@@ -18,6 +18,9 @@ pub struct MobileBettingPanel;
 #[derive(Component)]
 pub struct MobileTeachingPanel;
 
+#[derive(Component)]
+pub struct CommunityCardsContainer;
+
 // Mobile-friendly constants
 const MOBILE_BUTTON_HEIGHT: f32 = 60.0;
 const MOBILE_TOUCH_PADDING: f32 = 8.0;
@@ -117,76 +120,12 @@ fn create_mobile_middle_section(parent: &mut ChildBuilder) {
                     background_color: Color::rgba(0.0, 0.0, 0.0, 0.2).into(),
                     ..default()
                 })
-                .with_children(|community_parent| {
-                    println!("🃏 Creating community cards...");
-                    // Create 5 community cards (flop, turn, river)
-                    let community_cards = [
-                        (crate::cards::Suit::Hearts, crate::cards::Rank::Ace),
-                        (crate::cards::Suit::Spades, crate::cards::Rank::King),
-                        (crate::cards::Suit::Diamonds, crate::cards::Rank::Queen),
-                        (crate::cards::Suit::Clubs, crate::cards::Rank::Jack),
-                        (crate::cards::Suit::Hearts, crate::cards::Rank::Ten),
-                    ];
-
-                    for (suit, rank) in community_cards.iter() {
-                        community_parent
-                            .spawn(NodeBundle {
-                                style: Style {
-                                    width: Val::Px(45.0),  // Medium size for community cards
-                                    height: Val::Px(63.0), // Proportional height
-                                    margin: UiRect::all(Val::Px(3.0)),
-                                    border: UiRect::all(Val::Px(1.0)),
-                                    flex_direction: FlexDirection::Column,
-                                    justify_content: JustifyContent::SpaceBetween,
-                                    align_items: AlignItems::Center,
-                                    padding: UiRect::all(Val::Px(2.0)),
-                                    ..default()
-                                },
-                                background_color: Color::rgb(0.98, 0.98, 0.96).into(), // Card face color
-                                border_color: Color::rgb(0.7, 0.7, 0.7).into(),
-                                ..default()
-                            })
-                            .with_children(|card_parent| {
-                                // Top rank
-                                card_parent.spawn(TextBundle::from_section(
-                                    crate::mobile_cards::mobile_rank_symbol(*rank),
-                                    TextStyle {
-                                        font_size: 10.0,
-                                        color: crate::mobile_cards::mobile_suit_color(*suit),
-                                        ..default()
-                                    },
-                                ));
-
-                                // Center suit symbol
-                                card_parent.spawn(TextBundle::from_section(
-                                    crate::mobile_cards::mobile_suit_symbol(*suit),
-                                    TextStyle {
-                                        font_size: 16.0,
-                                        color: crate::mobile_cards::mobile_suit_color(*suit),
-                                        ..default()
-                                    },
-                                ));
-
-                                // Bottom rank (rotated)
-                                card_parent.spawn(TextBundle::from_section(
-                                    crate::mobile_cards::mobile_rank_symbol(*rank),
-                                    TextStyle {
-                                        font_size: 10.0,
-                                        color: crate::mobile_cards::mobile_suit_color(*suit),
-                                        ..default()
-                                    },
-                                ));
-                            })
-                            .insert(crate::mobile_cards::MobileCard {
-                                card: crate::cards::Card {
-                                    suit: *suit,
-                                    rank: *rank,
-                                },
-                                is_community: true,
-                                is_face_down: false,
-                            });
-                    }
-                });
+                .with_children(|_community_parent| {
+                    println!("🃏 Creating community cards container...");
+                    // Community cards will be populated dynamically by the game state
+                    // No hardcoded cards - they will be added by update_mobile_community_cards system
+                })
+                .insert(CommunityCardsContainer);
 
             // Teaching/hints area (collapsible)
             create_mobile_teaching_panel(middle_parent);
