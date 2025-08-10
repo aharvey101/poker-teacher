@@ -63,13 +63,6 @@ impl Default for Deck {
 }
 
 impl Deck {
-    #[allow(dead_code)]
-    pub fn new() -> Self {
-        let mut deck = Self::default();
-        deck.shuffle();
-        deck
-    }
-    
     pub fn shuffle(&mut self) {
         let mut rng = thread_rng();
         self.cards.shuffle(&mut rng);
@@ -77,11 +70,6 @@ impl Deck {
     
     pub fn deal(&mut self) -> Option<Card> {
         self.cards.pop()
-    }
-    
-    #[allow(dead_code)]
-    pub fn cards_remaining(&self) -> usize {
-        self.cards.len()
     }
     
     pub fn reset(&mut self) {

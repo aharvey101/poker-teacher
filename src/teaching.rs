@@ -6,18 +6,6 @@ use crate::player::{Player, PlayerType};
 
 // Teaching system components
 #[derive(Component)]
-#[allow(dead_code)]
-pub struct TeachingPopup;
-
-#[derive(Component)]
-#[allow(dead_code)]
-pub struct HandRankingGuide;
-
-#[derive(Component)]
-#[allow(dead_code)]
-pub struct TutorialOverlay;
-
-#[derive(Component)]
 pub struct TeachingMessageDisplay;
 
 #[derive(Component)]
@@ -91,24 +79,6 @@ impl TeachingState {
         }
         // Keep a log entry for reference but now we'll also update UI
         info!("📚 Teaching: {}", self.current_explanation.as_ref().unwrap_or(&"No explanation".to_string()));
-    }
-    
-    #[allow(dead_code)]
-    pub fn hide_explanation(&mut self) {
-        self.show_rule_popup = false;
-        self.current_explanation = None;
-    }
-    
-    #[allow(dead_code)]
-    pub fn toggle_tutorial_mode(&mut self) {
-        self.tutorial_mode = !self.tutorial_mode;
-        info!("📖 Tutorial mode: {}", if self.tutorial_mode { "ON" } else { "OFF" });
-    }
-    
-    #[allow(dead_code)]
-    pub fn toggle_hand_rankings(&mut self) {
-        self.show_hand_rankings = !self.show_hand_rankings;
-        info!("🃏 Hand rankings guide: {}", if self.show_hand_rankings { "SHOWN" } else { "HIDDEN" });
     }
 }
 
@@ -485,86 +455,4 @@ fn get_rank_name(rank: crate::cards::Rank) -> &'static str {
 // Helper function to get numeric rank value
 fn rank_value(rank: crate::cards::Rank) -> u8 {
     rank as u8
-}
-
-// Helper function to analyze flop situation
-#[allow(dead_code)]
-fn analyze_flop_situation(hole_cards: &[crate::cards::Card], community_cards: &[crate::cards::Card], _betting_round: &crate::betting::BettingRound) {
-    if hole_cards.len() != 2 || community_cards.len() < 3 {
-        return;
-    }
-    
-    let mut all_cards = hole_cards.to_vec();
-    all_cards.extend_from_slice(&community_cards[0..3]);
-    
-    let evaluation = crate::poker_rules::evaluate_hand(hole_cards, community_cards);
-    
-    match evaluation.rank {
-        crate::poker_rules::HandRank::RoyalFlush => info!("🏆 ROYAL FLUSH! The nuts! Bet aggressively!"),
-        crate::poker_rules::HandRank::StraightFlush => info!("🔥 STRAIGHT FLUSH! Excellent hand! Bet for value!"),
-        crate::poker_rules::HandRank::FourOfAKind => info!("💎 FOUR OF A KIND! Monster hand! Bet for maximum value!"),
-        crate::poker_rules::HandRank::FullHouse => info!("🏠 FULL HOUSE! Very strong hand! Bet confidently!"),
-        crate::poker_rules::HandRank::Flush => info!("🌊 FLUSH! Strong hand! Good for betting and raising!"),
-        crate::poker_rules::HandRank::Straight => info!("📈 STRAIGHT! Solid hand! Be aware of flush possibilities!"),
-        crate::poker_rules::HandRank::ThreeOfAKind => info!("🎯 THREE OF A KIND! Good hand! Bet for value!"),
-        crate::poker_rules::HandRank::TwoPair => info!("👥 TWO PAIR! Decent hand! Play carefully against aggression!"),
-        crate::poker_rules::HandRank::OnePair => info!("👫 ONE PAIR! Marginal hand! Consider opponents' actions!"),
-        crate::poker_rules::HandRank::HighCard => info!("📉 HIGH CARD: Weak hand! Consider folding to betting!"),
-    }
-}
-
-// Helper function to analyze turn situation  
-#[allow(dead_code)]
-fn analyze_turn_situation(hole_cards: &[crate::cards::Card], community_cards: &[crate::cards::Card], _betting_round: &crate::betting::BettingRound) {
-    if community_cards.len() < 4 {
-        return;
-    }
-    
-    info!("🃏 TURN: The 4th community card is out. Your hand is more defined now.");
-    info!("💭 Consider: What hands could your opponents have? What are you trying to achieve?");
-    
-    let evaluation = crate::poker_rules::evaluate_hand(hole_cards, community_cards);
-    if matches!(evaluation.rank, crate::poker_rules::HandRank::HighCard | crate::poker_rules::HandRank::OnePair) {
-        info!("⚠️  With a weak hand, consider folding to significant betting!");
-    }
-}
-
-// Helper function to analyze river situation
-#[allow(dead_code)]
-fn analyze_river_situation(hole_cards: &[crate::cards::Card], community_cards: &[crate::cards::Card], betting_round: &crate::betting::BettingRound) {
-    if community_cards.len() < 5 {
-        return;
-    }
-    
-    info!("🏁 RIVER: All cards are out! This is your final decision with complete information.");
-    
-    let evaluation = crate::poker_rules::evaluate_hand(hole_cards, community_cards);
-    let pot_odds = if betting_round.current_bet > 0 { 
-        betting_round.pot as f32 / betting_round.current_bet as f32 
-    } else { 
-        0.0 
-    };
-    
-    info!("🎯 Your final hand: {}", crate::poker_rules::hand_rank_name(&evaluation.rank));
-    
-    if pot_odds > 0.0 {
-        info!("📊 Pot odds: {:.1}:1 (pot: ${}, to call: ${})", pot_odds, betting_round.pot, betting_round.current_bet);
-    }
-    
-    match evaluation.rank {
-        crate::poker_rules::HandRank::RoyalFlush | crate::poker_rules::HandRank::StraightFlush | 
-        crate::poker_rules::HandRank::FourOfAKind | crate::poker_rules::HandRank::FullHouse => {
-            info!("🚀 MONSTER HAND! Bet/raise for maximum value!");
-        },
-        crate::poker_rules::HandRank::Flush | crate::poker_rules::HandRank::Straight | 
-        crate::poker_rules::HandRank::ThreeOfAKind => {
-            info!("💪 STRONG HAND! Usually good for betting/calling!");
-        },
-        crate::poker_rules::HandRank::TwoPair | crate::poker_rules::HandRank::OnePair => {
-            info!("🤔 MARGINAL HAND: Consider pot odds and opponent behavior!");
-        },
-        crate::poker_rules::HandRank::HighCard => {
-            info!("❌ WEAK HAND: Usually fold unless getting great pot odds!");
-        },
-    }
 }

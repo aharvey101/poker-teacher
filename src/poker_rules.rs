@@ -291,26 +291,6 @@ pub fn hand_rank_name(rank: &HandRank) -> &'static str {
     }
 }
 
-#[allow(dead_code)]
-pub fn rank_name(rank: u8) -> &'static str {
-    match rank {
-        2 => "Two",
-        3 => "Three",
-        4 => "Four", 
-        5 => "Five",
-        6 => "Six",
-        7 => "Seven",
-        8 => "Eight",
-        9 => "Nine",
-        10 => "Ten",
-        11 => "Jack",
-        12 => "Queen",
-        13 => "King",
-        14 => "Ace",
-        _ => "Unknown",
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

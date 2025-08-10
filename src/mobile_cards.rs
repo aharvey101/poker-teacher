@@ -1,11 +1,9 @@
 use bevy::prelude::*;
 use crate::cards::{Card, Suit, Rank};
 
-// Mobile-optimized card rendering constants
-const MOBILE_CARD_WIDTH: f32 = 50.0;
-const MOBILE_CARD_HEIGHT: f32 = 70.0;
-#[allow(dead_code)]
-const MOBILE_CARD_RADIUS: f32 = 6.0;
+// Constants for mobile card display
+const MOBILE_CARD_WIDTH: f32 = 45.0;
+const MOBILE_CARD_HEIGHT: f32 = 60.0;
 
 // Mobile-friendly card colors with better contrast
 const MOBILE_CARD_BG: Color = Color::rgb(0.98, 0.98, 0.96);

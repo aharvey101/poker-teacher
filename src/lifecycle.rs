@@ -1,14 +1,4 @@
-use crate::game_state::AppState;
-use bevy::app::AppExit;
-use bevy::prelude::*;
-
-#[allow(dead_code)]
-pub fn handle_app_lifecycle(
-    mut app_state: ResMut<NextState<AppState>>,
-    mut app_exit_events: EventReader<AppExit>,
-) {
-    for _ in app_exit_events.read() {
-        bevy::log::info!("App exit requested, entering suspended state.");
-        app_state.set(AppState::Suspended);
-    }
-}
+// Mobile app lifecycle handling - not currently used but reserved for future mobile features
+// use crate::game_state::AppState;
+// use bevy::app::AppExit;
+// use bevy::prelude::*;

@@ -66,27 +66,6 @@ impl GamePosition {
         self.dealer_button = (self.dealer_button + 1) % self.total_players;
         info!("🔄 Dealer button moved to Player {}", self.dealer_button);
     }
-    
-    #[allow(dead_code)]
-    pub fn get_betting_order(&self, is_preflop: bool) -> Vec<u32> {
-        let mut order = Vec::new();
-        
-        if is_preflop {
-            // Pre-flop: start with player after big blind
-            let first_to_act = (self.dealer_button + 3) % self.total_players;
-            for i in 0..self.total_players {
-                order.push((first_to_act + i) % self.total_players);
-            }
-        } else {
-            // Post-flop: start with small blind
-            let first_to_act = self.get_small_blind_player();
-            for i in 0..self.total_players {
-                order.push((first_to_act + i) % self.total_players);
-            }
-        }
-        
-        order
-    }
 }
 
 impl Default for GameData {
@@ -214,16 +193,6 @@ mod tests {
 }
 
 impl GameData {
-    #[allow(dead_code)]
-    pub fn next_player(&mut self, total_players: u32) {
-        self.current_player = (self.current_player + 1) % total_players;
-    }
-    
-    #[allow(dead_code)]
-    pub fn add_to_pot(&mut self, amount: u32) {
-        self.pot += amount;
-    }
-    
     pub fn new_round(&mut self) {
         self.round_number += 1;
         self.pot = 0;
