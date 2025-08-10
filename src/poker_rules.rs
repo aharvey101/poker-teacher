@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::cards::{Card, Suit};
+use bevy::prelude::*;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -19,9 +19,9 @@ pub enum HandRank {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HandEvaluation {
     pub rank: HandRank,
-    pub primary_value: u8,    // Main value (e.g., pair rank, high card)
-    pub secondary_value: u8,  // Secondary value (e.g., kicker, second pair)
-    pub kickers: Vec<u8>,     // Remaining cards for tie-breaking
+    pub primary_value: u8,   // Main value (e.g., pair rank, high card)
+    pub secondary_value: u8, // Secondary value (e.g., kicker, second pair)
+    pub kickers: Vec<u8>,    // Remaining cards for tie-breaking
 }
 
 impl PartialOrd for HandEvaluation {
@@ -59,7 +59,7 @@ pub fn evaluate_hand(hole_cards: &[Card], community_cards: &[Card]) -> HandEvalu
     let mut all_cards = Vec::new();
     all_cards.extend_from_slice(hole_cards);
     all_cards.extend_from_slice(community_cards);
-    
+
     // Find the best 5-card hand from available cards
     let best_hand = find_best_five_card_hand(&all_cards);
     evaluate_five_card_hand(&best_hand)
@@ -69,7 +69,7 @@ fn find_best_five_card_hand(cards: &[Card]) -> Vec<Card> {
     if cards.len() <= 5 {
         return cards.to_vec();
     }
-    
+
     let mut best_hand = Vec::new();
     let mut best_evaluation = HandEvaluation {
         rank: HandRank::HighCard,
@@ -77,7 +77,7 @@ fn find_best_five_card_hand(cards: &[Card]) -> Vec<Card> {
         secondary_value: 0,
         kickers: vec![],
     };
-    
+
     // Generate all possible 5-card combinations
     for combo in combinations(cards, 5) {
         let evaluation = evaluate_five_card_hand(&combo);
@@ -86,7 +86,7 @@ fn find_best_five_card_hand(cards: &[Card]) -> Vec<Card> {
             best_hand = combo;
         }
     }
-    
+
     best_hand
 }
 
@@ -100,24 +100,27 @@ fn combinations(cards: &[Card], k: usize) -> Vec<Vec<Card>> {
     if k == cards.len() {
         return vec![cards.to_vec()];
     }
-    
+
     let mut result = Vec::new();
-    
+
     // Include first card
     for mut combo in combinations(&cards[1..], k - 1) {
         combo.insert(0, cards[0]);
         result.push(combo);
     }
-    
+
     // Exclude first card
     result.extend(combinations(&cards[1..], k));
-    
+
     result
 }
 
 fn evaluate_five_card_hand(cards: &[Card]) -> HandEvaluation {
     if cards.len() != 5 {
-        error!("Hand evaluation requires exactly 5 cards, got {}", cards.len());
+        error!(
+            "Hand evaluation requires exactly 5 cards, got {}",
+            cards.len()
+        );
         return HandEvaluation {
             rank: HandRank::HighCard,
             primary_value: 0,
@@ -125,24 +128,25 @@ fn evaluate_five_card_hand(cards: &[Card]) -> HandEvaluation {
             kickers: vec![0; 5],
         };
     }
-    
+
     let mut sorted_cards = cards.to_vec();
     sorted_cards.sort_by(|a, b| b.rank.cmp(&a.rank)); // Sort descending
-    
+
     let ranks: Vec<u8> = sorted_cards.iter().map(|c| c.rank as u8).collect();
     let suits: Vec<Suit> = sorted_cards.iter().map(|c| c.suit).collect();
-    
+
     // Count rank frequencies
     let mut rank_counts = HashMap::new();
     for &rank in &ranks {
         *rank_counts.entry(rank).or_insert(0) += 1;
     }
-    
+
     let is_flush = suits.iter().all(|&s| s == suits[0]);
     let is_straight = is_straight_hand(&ranks);
-    
+
     // Check for royal flush
-    if is_flush && is_straight && ranks[0] == 14 { // Ace high straight
+    if is_flush && is_straight && ranks[0] == 14 {
+        // Ace high straight
         return HandEvaluation {
             rank: HandRank::RoyalFlush,
             primary_value: 14,
@@ -150,7 +154,7 @@ fn evaluate_five_card_hand(cards: &[Card]) -> HandEvaluation {
             kickers: vec![],
         };
     }
-    
+
     // Check for straight flush
     if is_flush && is_straight {
         return HandEvaluation {
@@ -160,19 +164,17 @@ fn evaluate_five_card_hand(cards: &[Card]) -> HandEvaluation {
             kickers: vec![],
         };
     }
-    
+
     // Sort rank counts by frequency and then by rank
     let mut count_groups: Vec<(usize, u8)> = rank_counts
         .into_iter()
         .map(|(rank, count)| (count, rank))
         .collect();
-    count_groups.sort_by(|a, b| {
-        match b.0.cmp(&a.0) {
-            std::cmp::Ordering::Equal => b.1.cmp(&a.1),
-            other => other,
-        }
+    count_groups.sort_by(|a, b| match b.0.cmp(&a.0) {
+        std::cmp::Ordering::Equal => b.1.cmp(&a.1),
+        other => other,
     });
-    
+
     match count_groups.as_slice() {
         // Four of a kind
         [(4, quad_rank), (1, kicker)] => HandEvaluation {
@@ -181,7 +183,7 @@ fn evaluate_five_card_hand(cards: &[Card]) -> HandEvaluation {
             secondary_value: 0,
             kickers: vec![*kicker],
         },
-        
+
         // Full house
         [(3, trip_rank), (2, pair_rank)] => HandEvaluation {
             rank: HandRank::FullHouse,
@@ -189,7 +191,7 @@ fn evaluate_five_card_hand(cards: &[Card]) -> HandEvaluation {
             secondary_value: *pair_rank,
             kickers: vec![],
         },
-        
+
         // Three of a kind
         [(3, trip_rank), (1, k1), (1, k2)] => {
             let mut kickers = vec![*k1, *k2];
@@ -200,8 +202,8 @@ fn evaluate_five_card_hand(cards: &[Card]) -> HandEvaluation {
                 secondary_value: 0,
                 kickers,
             }
-        },
-        
+        }
+
         // Two pair
         [(2, high_pair), (2, low_pair), (1, kicker)] => {
             let (high, low) = if high_pair > low_pair {
@@ -215,8 +217,8 @@ fn evaluate_five_card_hand(cards: &[Card]) -> HandEvaluation {
                 secondary_value: low,
                 kickers: vec![*kicker],
             }
-        },
-        
+        }
+
         // One pair
         [(2, pair_rank), (1, k1), (1, k2), (1, k3)] => {
             let mut kickers = vec![*k1, *k2, *k3];
@@ -227,8 +229,8 @@ fn evaluate_five_card_hand(cards: &[Card]) -> HandEvaluation {
                 secondary_value: 0,
                 kickers,
             }
-        },
-        
+        }
+
         // High card or flush or straight
         _ => {
             if is_flush {
@@ -261,7 +263,7 @@ fn is_straight_hand(ranks: &[u8]) -> bool {
     if ranks.len() != 5 {
         return false;
     }
-    
+
     // Check for regular straight
     for i in 0..4 {
         if ranks[i] - ranks[i + 1] != 1 {
@@ -272,14 +274,14 @@ fn is_straight_hand(ranks: &[u8]) -> bool {
             return false;
         }
     }
-    
+
     true
 }
 
 pub fn hand_rank_name(rank: &HandRank) -> &'static str {
     match rank {
         HandRank::HighCard => "High Card",
-        HandRank::OnePair => "One Pair", 
+        HandRank::OnePair => "One Pair",
         HandRank::TwoPair => "Two Pair",
         HandRank::ThreeOfAKind => "Three of a Kind",
         HandRank::Straight => "Straight",
@@ -294,8 +296,8 @@ pub fn hand_rank_name(rank: &HandRank) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::cards::{Card, Suit, Rank};
-    
+    use crate::cards::{Card, Rank, Suit};
+
     #[test]
     fn test_royal_flush() {
         let cards = vec![
@@ -305,12 +307,12 @@ mod tests {
             Card::new(Suit::Hearts, Rank::Jack),
             Card::new(Suit::Hearts, Rank::Ten),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::RoyalFlush);
         assert_eq!(eval.primary_value, 14);
     }
-    
+
     #[test]
     fn test_straight_flush() {
         let cards = vec![
@@ -320,12 +322,12 @@ mod tests {
             Card::new(Suit::Spades, Rank::Six),
             Card::new(Suit::Spades, Rank::Five),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::StraightFlush);
         assert_eq!(eval.primary_value, 9);
     }
-    
+
     #[test]
     fn test_four_of_a_kind() {
         let cards = vec![
@@ -335,13 +337,13 @@ mod tests {
             Card::new(Suit::Spades, Rank::King),
             Card::new(Suit::Hearts, Rank::Ace),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::FourOfAKind);
         assert_eq!(eval.primary_value, 13); // King
         assert_eq!(eval.kickers[0], 14); // Ace kicker
     }
-    
+
     #[test]
     fn test_full_house() {
         let cards = vec![
@@ -351,13 +353,13 @@ mod tests {
             Card::new(Suit::Spades, Rank::Ace),
             Card::new(Suit::Hearts, Rank::Ace),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::FullHouse);
         assert_eq!(eval.primary_value, 13); // Kings
         assert_eq!(eval.secondary_value, 14); // Aces
     }
-    
+
     #[test]
     fn test_flush() {
         let cards = vec![
@@ -367,12 +369,12 @@ mod tests {
             Card::new(Suit::Hearts, Rank::Eight),
             Card::new(Suit::Hearts, Rank::Five),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::Flush);
         assert_eq!(eval.primary_value, 13); // King high
     }
-    
+
     #[test]
     fn test_straight() {
         let cards = vec![
@@ -382,12 +384,12 @@ mod tests {
             Card::new(Suit::Spades, Rank::Ten),
             Card::new(Suit::Hearts, Rank::Nine),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::Straight);
         assert_eq!(eval.primary_value, 13); // King high
     }
-    
+
     #[test]
     fn test_low_ace_straight() {
         let cards = vec![
@@ -397,12 +399,12 @@ mod tests {
             Card::new(Suit::Spades, Rank::Three),
             Card::new(Suit::Hearts, Rank::Two),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::Straight);
         assert_eq!(eval.primary_value, 14); // Ace high (wheel)
     }
-    
+
     #[test]
     fn test_three_of_a_kind() {
         let cards = vec![
@@ -412,14 +414,14 @@ mod tests {
             Card::new(Suit::Spades, Rank::Ace),
             Card::new(Suit::Hearts, Rank::Queen),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::ThreeOfAKind);
         assert_eq!(eval.primary_value, 13); // King trips
         assert_eq!(eval.kickers[0], 14); // Ace kicker
         assert_eq!(eval.kickers[1], 12); // Queen kicker
     }
-    
+
     #[test]
     fn test_two_pair() {
         let cards = vec![
@@ -429,14 +431,14 @@ mod tests {
             Card::new(Suit::Spades, Rank::Queen),
             Card::new(Suit::Hearts, Rank::Ace),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::TwoPair);
         assert_eq!(eval.primary_value, 13); // Kings
         assert_eq!(eval.secondary_value, 12); // Queens
         assert_eq!(eval.kickers[0], 14); // Ace kicker
     }
-    
+
     #[test]
     fn test_pair() {
         let cards = vec![
@@ -446,7 +448,7 @@ mod tests {
             Card::new(Suit::Hearts, Rank::Queen),
             Card::new(Suit::Hearts, Rank::Jack),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::OnePair);
         assert_eq!(eval.primary_value, 14); // Ace pair
@@ -454,7 +456,7 @@ mod tests {
         assert_eq!(eval.kickers[1], 12); // Queen kicker
         assert_eq!(eval.kickers[2], 11); // Jack kicker
     }
-    
+
     #[test]
     fn test_high_card() {
         let cards = vec![
@@ -464,7 +466,7 @@ mod tests {
             Card::new(Suit::Spades, Rank::Jack),
             Card::new(Suit::Hearts, Rank::Nine),
         ];
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::HighCard);
         assert_eq!(eval.primary_value, 14); // Ace high
@@ -473,7 +475,7 @@ mod tests {
         assert_eq!(eval.kickers[2], 11); // Jack
         assert_eq!(eval.kickers[3], 9); // Nine
     }
-    
+
     #[test]
     fn test_hand_comparison() {
         let royal_flush = vec![
@@ -483,7 +485,7 @@ mod tests {
             Card::new(Suit::Hearts, Rank::Jack),
             Card::new(Suit::Hearts, Rank::Ten),
         ];
-        
+
         let straight_flush = vec![
             Card::new(Suit::Spades, Rank::Nine),
             Card::new(Suit::Spades, Rank::Eight),
@@ -491,20 +493,20 @@ mod tests {
             Card::new(Suit::Spades, Rank::Six),
             Card::new(Suit::Spades, Rank::Five),
         ];
-        
+
         let royal_eval = evaluate_five_card_hand(&royal_flush);
         let straight_eval = evaluate_five_card_hand(&straight_flush);
-        
+
         assert!(royal_eval > straight_eval);
     }
-    
+
     #[test]
     fn test_best_hand_from_seven() {
         let player_cards = vec![
             Card::new(Suit::Hearts, Rank::Ace),
             Card::new(Suit::Spades, Rank::Ace),
         ];
-        
+
         let community_cards = vec![
             Card::new(Suit::Hearts, Rank::King),
             Card::new(Suit::Diamonds, Rank::King),
@@ -512,12 +514,12 @@ mod tests {
             Card::new(Suit::Spades, Rank::Jack),
             Card::new(Suit::Hearts, Rank::Ten),
         ];
-        
+
         let best_hand = evaluate_hand(&player_cards, &community_cards);
         assert_eq!(best_hand.rank, HandRank::Straight); // A-K-Q-J-10 straight is better than Aces and Kings two pair
         assert_eq!(best_hand.primary_value, 14); // High card of straight (Ace)
     }
-    
+
     #[test]
     fn test_invalid_hand_size() {
         let cards = vec![
@@ -525,12 +527,12 @@ mod tests {
             Card::new(Suit::Spades, Rank::King),
             Card::new(Suit::Hearts, Rank::Queen),
         ]; // Only 3 cards
-        
+
         let eval = evaluate_five_card_hand(&cards);
         assert_eq!(eval.rank, HandRank::HighCard);
         assert_eq!(eval.primary_value, 0);
     }
-    
+
     #[test]
     fn test_hand_rank_names() {
         assert_eq!(hand_rank_name(&HandRank::RoyalFlush), "Royal Flush");

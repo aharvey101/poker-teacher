@@ -1,8 +1,8 @@
 #![allow(dead_code)]
-use bevy::prelude::*;
-use crate::cards::{Card, Suit, Rank};
-use crate::player::Player;
+use crate::cards::{Card, Rank, Suit};
 use crate::game_state::GameState;
+use crate::player::Player;
+use bevy::prelude::*;
 
 // Constants for card rendering
 const CARD_WIDTH: f32 = 60.0;
@@ -13,9 +13,8 @@ const CARD_CORNER_RADIUS: f32 = 8.0;
 // Component to mark rendered cards
 #[derive(Component)]
 pub struct RenderedCard {
-    
     pub card: Card,
-    
+
     pub owner_id: Option<u32>, // None for community cards
 }
 
@@ -52,7 +51,7 @@ pub fn suit_symbol(suit: Suit) -> &'static str {
 pub fn rank_symbol(rank: Rank) -> &'static str {
     match rank {
         Rank::Two => "2",
-        Rank::Three => "3", 
+        Rank::Three => "3",
         Rank::Four => "4",
         Rank::Five => "5",
         Rank::Six => "6",
@@ -78,26 +77,27 @@ pub fn render_player_cards(
     if !game_state.is_changed() {
         return;
     }
-    
+
     // Clear existing rendered cards only when something changed
     for entity in rendered_cards.iter() {
         if let Some(entity_commands) = commands.get_entity(entity) {
             entity_commands.despawn_recursive();
         }
     }
-    
+
     // Render cards for all players
     for player in players.iter() {
         let card_spacing = CARD_WIDTH + 10.0;
-        let start_x = player.position.x - (card_spacing * (player.hole_cards.len() as f32 - 1.0)) / 2.0;
-        
+        let start_x =
+            player.position.x - (card_spacing * (player.hole_cards.len() as f32 - 1.0)) / 2.0;
+
         for (i, &card) in player.hole_cards.iter().enumerate() {
             let card_pos = Vec3::new(
                 start_x + i as f32 * card_spacing,
                 player.position.y - 50.0, // Cards below player position
-                1.0, // Above background
+                1.0,                      // Above background
             );
-            
+
             spawn_card(&mut commands, card, card_pos, Some(player.id));
         }
     }
@@ -113,25 +113,25 @@ pub fn render_community_cards(
     if !game_data.is_changed() {
         return;
     }
-    
+
     // Clear existing community cards only when something changed
     for entity in rendered_community_cards.iter() {
         if let Some(entity_commands) = commands.get_entity(entity) {
             entity_commands.despawn_recursive();
         }
     }
-    
+
     // Render community cards in the center
     let card_spacing = CARD_WIDTH + 15.0;
     let start_x = -(card_spacing * (game_data.community_cards.len() as f32 - 1.0)) / 2.0;
-    
+
     for (i, &card) in game_data.community_cards.iter().enumerate() {
         let card_pos = Vec3::new(
             start_x + i as f32 * card_spacing,
             0.0, // Center of table
             1.0,
         );
-        
+
         spawn_card(&mut commands, card, card_pos, None);
     }
 }
@@ -159,10 +159,14 @@ fn spawn_card(commands: &mut Commands, card: Card, position: Vec3, owner_id: Opt
                         ..default()
                     },
                 ),
-                transform: Transform::from_xyz(-CARD_WIDTH/2.0 + 8.0, CARD_HEIGHT/2.0 - 12.0, 0.1),
+                transform: Transform::from_xyz(
+                    -CARD_WIDTH / 2.0 + 8.0,
+                    CARD_HEIGHT / 2.0 - 12.0,
+                    0.1,
+                ),
                 ..default()
             });
-            
+
             // Suit symbol (top-left, below rank)
             parent.spawn(Text2dBundle {
                 text: Text::from_section(
@@ -173,10 +177,14 @@ fn spawn_card(commands: &mut Commands, card: Card, position: Vec3, owner_id: Opt
                         ..default()
                     },
                 ),
-                transform: Transform::from_xyz(-CARD_WIDTH/2.0 + 8.0, CARD_HEIGHT/2.0 - 28.0, 0.1),
+                transform: Transform::from_xyz(
+                    -CARD_WIDTH / 2.0 + 8.0,
+                    CARD_HEIGHT / 2.0 - 28.0,
+                    0.1,
+                ),
                 ..default()
             });
-            
+
             // Large suit symbol in center
             parent.spawn(Text2dBundle {
                 text: Text::from_section(
@@ -190,7 +198,7 @@ fn spawn_card(commands: &mut Commands, card: Card, position: Vec3, owner_id: Opt
                 transform: Transform::from_xyz(0.0, 0.0, 0.1),
                 ..default()
             });
-            
+
             // Rank text (bottom-right, rotated)
             parent.spawn(Text2dBundle {
                 text: Text::from_section(
@@ -201,11 +209,15 @@ fn spawn_card(commands: &mut Commands, card: Card, position: Vec3, owner_id: Opt
                         ..default()
                     },
                 ),
-                transform: Transform::from_xyz(CARD_WIDTH/2.0 - 8.0, -CARD_HEIGHT/2.0 + 12.0, 0.1)
-                    .with_rotation(Quat::from_rotation_z(std::f32::consts::PI)),
+                transform: Transform::from_xyz(
+                    CARD_WIDTH / 2.0 - 8.0,
+                    -CARD_HEIGHT / 2.0 + 12.0,
+                    0.1,
+                )
+                .with_rotation(Quat::from_rotation_z(std::f32::consts::PI)),
                 ..default()
             });
-            
+
             // Suit symbol (bottom-right, rotated)
             parent.spawn(Text2dBundle {
                 text: Text::from_section(
@@ -216,8 +228,12 @@ fn spawn_card(commands: &mut Commands, card: Card, position: Vec3, owner_id: Opt
                         ..default()
                     },
                 ),
-                transform: Transform::from_xyz(CARD_WIDTH/2.0 - 8.0, -CARD_HEIGHT/2.0 + 28.0, 0.1)
-                    .with_rotation(Quat::from_rotation_z(std::f32::consts::PI)),
+                transform: Transform::from_xyz(
+                    CARD_WIDTH / 2.0 - 8.0,
+                    -CARD_HEIGHT / 2.0 + 28.0,
+                    0.1,
+                )
+                .with_rotation(Quat::from_rotation_z(std::f32::consts::PI)),
                 ..default()
             });
         })
@@ -235,25 +251,28 @@ pub fn render_card_backs_for_ai(
     if !game_state.is_changed() {
         return;
     }
-    
+
     // Clear existing card backs only when something changed
     for entity in card_backs.iter() {
         commands.entity(entity).despawn_recursive();
     }
-    
+
     // Render card backs for AI players only
     for player in players.iter() {
-        if matches!(player.player_type, crate::player::PlayerType::AI) && !player.hole_cards.is_empty() {
+        if matches!(player.player_type, crate::player::PlayerType::AI)
+            && !player.hole_cards.is_empty()
+        {
             let card_spacing = CARD_WIDTH + 10.0;
-            let start_x = player.position.x - (card_spacing * (player.hole_cards.len() as f32 - 1.0)) / 2.0;
-            
+            let start_x =
+                player.position.x - (card_spacing * (player.hole_cards.len() as f32 - 1.0)) / 2.0;
+
             for i in 0..player.hole_cards.len() {
                 let card_pos = Vec3::new(
                     start_x + i as f32 * card_spacing,
                     player.position.y - 50.0,
                     1.0,
                 );
-                
+
                 spawn_card_back(&mut commands, card_pos);
             }
         }

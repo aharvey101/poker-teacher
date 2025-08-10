@@ -1,8 +1,11 @@
-use bevy::prelude::*;
-use bevy::ui::{node_bundles::{NodeBundle, TextBundle}, Style};
-use bevy::text::TextStyle;
 use crate::game_state::GameState;
 use crate::player::{Player, PlayerType};
+use bevy::prelude::*;
+use bevy::text::TextStyle;
+use bevy::ui::{
+    node_bundles::{NodeBundle, TextBundle},
+    Style,
+};
 
 // Teaching system components
 #[derive(Component)]
@@ -56,36 +59,41 @@ impl TeachingState {
             ExplanationType::HandRanking(msg) => {
                 self.current_explanation = Some(format!("🃏 Hand Ranking: {}", msg));
                 self.show_rule_popup = true;
-            },
+            }
             ExplanationType::BettingRule(msg) => {
                 self.current_explanation = Some(format!("💰 Betting Rule: {}", msg));
                 self.show_rule_popup = true;
-            },
+            }
             ExplanationType::GamePhase(msg) => {
                 self.current_explanation = Some(format!("🎮 Game Phase: {}", msg));
                 self.show_rule_popup = true;
-            },
+            }
             ExplanationType::PlayerAction(msg) => {
                 self.current_explanation = Some(format!("🎯 Player Action: {}", msg));
                 self.show_rule_popup = true;
-            },
+            }
             ExplanationType::Mistake(msg) => {
                 if !self.mistakes_shown.contains(&msg) {
                     self.current_explanation = Some(format!("⚠️ Learning Tip: {}", msg));
                     self.show_rule_popup = true;
                     self.mistakes_shown.push(msg);
                 }
-            },
+            }
         }
         // Keep a log entry for reference but now we'll also update UI
-        info!("📚 Teaching: {}", self.current_explanation.as_ref().unwrap_or(&"No explanation".to_string()));
+        info!(
+            "📚 Teaching: {}",
+            self.current_explanation
+                .as_ref()
+                .unwrap_or(&"No explanation".to_string())
+        );
     }
 }
 
 // System to setup teaching UI
 pub fn setup_teaching_ui(mut commands: Commands) {
     info!("📚 Setting up teaching UI systems");
-    
+
     // Teaching message display (bottom left corner)
     commands
         .spawn(NodeBundle {
@@ -118,7 +126,7 @@ pub fn setup_teaching_ui(mut commands: Commands) {
                 ))
                 .insert(TeachingMessageDisplay);
         });
-    
+
     // Hand analysis display (bottom right corner)
     commands
         .spawn(NodeBundle {
@@ -151,14 +159,14 @@ pub fn setup_teaching_ui(mut commands: Commands) {
                 ))
                 .insert(HandAnalysisDisplay);
         });
-    
+
     info!("🎓 TEACHING CONTROLS:");
     info!("   T - Toggle tutorial mode (explanations)");
     info!("   H - Toggle hand rankings guide");
     info!("   R - Show basic betting rules");
     info!("   ESC - Hide current explanation");
     info!("📖 Tutorial mode is ON - you'll get explanations during play!");
-    
+
     info!("🎮 PHASE 7 GAME CONTROLS:");
     info!("   SPACE - Pause/resume auto-advance");
     info!("   P - Pause/resume game");
@@ -186,8 +194,6 @@ pub fn update_teaching_display(
     }
 }
 
-
-
 // System to provide contextual explanations during gameplay
 pub fn provide_contextual_explanations(
     current_state: Res<State<GameState>>,
@@ -197,53 +203,56 @@ pub fn provide_contextual_explanations(
     if !teaching_state.tutorial_mode {
         return;
     }
-    
+
     // Only trigger explanations when state changes
     if !current_state.is_changed() {
         return;
     }
-    
+
     match current_state.get() {
         GameState::Setup => {
             teaching_state.show_explanation(ExplanationType::GamePhase(
-                "Game is starting! Each player gets 2 hole cards and starts with chips.".to_string()
+                "Game is starting! Each player gets 2 hole cards and starts with chips."
+                    .to_string(),
             ));
-        },
+        }
         GameState::Dealing => {
             teaching_state.show_explanation(ExplanationType::GamePhase(
                 "Dealing phase - Each player receives 2 private cards. Small and big blinds are posted.".to_string()
             ));
-        },
+        }
         GameState::PreFlop => {
             teaching_state.show_explanation(ExplanationType::GamePhase(
                 "Pre-Flop betting - Make decisions based only on your 2 hole cards. Big blind sets minimum bet.".to_string()
             ));
-        },
+        }
         GameState::Flop => {
             teaching_state.show_explanation(ExplanationType::GamePhase(
                 "Flop - 3 community cards revealed! Now you can make poker hands with 5 cards total.".to_string()
             ));
-        },
+        }
         GameState::Turn => {
             teaching_state.show_explanation(ExplanationType::GamePhase(
-                "Turn - 4th community card revealed. Your hand possibilities are becoming clearer.".to_string()
+                "Turn - 4th community card revealed. Your hand possibilities are becoming clearer."
+                    .to_string(),
             ));
-        },
+        }
         GameState::River => {
             teaching_state.show_explanation(ExplanationType::GamePhase(
                 "River - Final community card! This is your last chance to bet with complete information.".to_string()
             ));
-        },
+        }
         GameState::Showdown => {
             teaching_state.show_explanation(ExplanationType::GamePhase(
                 "Showdown - All remaining players reveal cards. Best 5-card poker hand wins the pot!".to_string()
             ));
-        },
+        }
         GameState::GameOver => {
             let remaining_players = players.iter().filter(|p| p.chips > 0).count();
             if remaining_players <= 1 {
                 teaching_state.show_explanation(ExplanationType::GamePhase(
-                    "Game Over - Only one player has chips remaining! They are the winner.".to_string()
+                    "Game Over - Only one player has chips remaining! They are the winner."
+                        .to_string(),
                 ));
             }
         }
@@ -251,9 +260,7 @@ pub fn provide_contextual_explanations(
 }
 
 // System to explain hand rankings when requested
-pub fn explain_hand_rankings(
-    teaching_state: Res<TeachingState>,
-) {
+pub fn explain_hand_rankings(teaching_state: Res<TeachingState>) {
     if teaching_state.show_hand_rankings && teaching_state.is_changed() {
         info!("🃏 POKER HAND RANKINGS (Best to Worst):");
         info!("   1. Royal Flush - A, K, Q, J, 10 all same suit");
@@ -284,38 +291,45 @@ pub fn highlight_valid_actions(
         }
         return;
     }
-    
+
     // Check if state has changed or current player has changed
     let current_game_state = current_state.get().clone();
     let state_changed = teaching_state.last_game_state != Some(current_game_state);
     let player_changed = teaching_state.last_current_player != Some(game_data.current_player);
-    
+
     if !state_changed && !player_changed {
         return; // Don't spam the same message
     }
-    
+
     // Update tracked state
     teaching_state.last_game_state = Some(current_game_state);
     teaching_state.last_current_player = Some(game_data.current_player);
-    
+
     // Clear messages for new state
     if state_changed {
         teaching_state.messages_shown_this_state.clear();
     }
-    
+
     // Find human player
-    if let Ok(human_player) = players.iter().find(|p| matches!(p.player_type, PlayerType::Human)).ok_or("No human player") {
+    if let Ok(human_player) = players
+        .iter()
+        .find(|p| matches!(p.player_type, PlayerType::Human))
+        .ok_or("No human player")
+    {
         match current_state.get() {
             GameState::PreFlop | GameState::Flop | GameState::Turn | GameState::River => {
-                if !human_player.has_folded && human_player.chips > 0 && game_data.current_player == 0 {
+                if !human_player.has_folded
+                    && human_player.chips > 0
+                    && game_data.current_player == 0
+                {
                     let message = "💡 Your Turn!\nOptions:\n• FOLD - Quit this hand\n• CHECK/CALL - Match current bet\n• RAISE - Increase the bet".to_string();
-                    
+
                     if !teaching_state.messages_shown_this_state.contains(&message) {
                         // Update UI display
                         if let Ok(mut text) = hand_analysis_query.get_single_mut() {
                             text.sections[0].value = message.clone();
                         }
-                        
+
                         // Keep log for reference
                         info!("💡 Your options: FOLD (quit hand), CHECK/CALL (match bet), RAISE (increase bet)");
                         teaching_state.messages_shown_this_state.insert(message);
@@ -324,7 +338,7 @@ pub fn highlight_valid_actions(
                     // Clear display when it's not human player's turn
                     text.sections[0].value = "".to_string();
                 }
-            },
+            }
             _ => {
                 // Clear display for non-betting phases
                 if let Ok(mut text) = hand_analysis_query.get_single_mut() {
@@ -347,30 +361,35 @@ pub fn provide_hand_analysis(
     if !teaching_state.tutorial_mode {
         return;
     }
-    
+
     // Only update when state changes
     if !current_state.is_changed() {
         return;
     }
-    
+
     // Find human player
-    if let Ok(human_player) = players.iter().find(|p| matches!(p.player_type, PlayerType::Human)).ok_or("No human player") {
+    if let Ok(human_player) = players
+        .iter()
+        .find(|p| matches!(p.player_type, PlayerType::Human))
+        .ok_or("No human player")
+    {
         match current_state.get() {
             GameState::PreFlop => {
                 if !human_player.hole_cards.is_empty() {
-                    let analysis = analyze_starting_hand_ui(&human_player.hole_cards, &betting_round);
+                    let analysis =
+                        analyze_starting_hand_ui(&human_player.hole_cards, &betting_round);
                     if let Ok(mut text) = hand_analysis_query.get_single_mut() {
                         text.sections[0].value = analysis;
                     }
                 }
-            },
+            }
             GameState::Flop | GameState::Turn | GameState::River => {
                 // For now, clear the hand analysis during later phases
                 // We could add more detailed analysis here later
                 if let Ok(mut text) = hand_analysis_query.get_single_mut() {
                     text.sections[0].value = "📊 Community cards revealed!\nAnalyze how they improve\nyour hand strength.".to_string();
                 }
-            },
+            }
             _ => {
                 // Clear analysis display for other phases
                 if let Ok(mut text) = hand_analysis_query.get_single_mut() {
@@ -382,54 +401,99 @@ pub fn provide_hand_analysis(
 }
 
 // Helper function to analyze starting hand strength for UI display
-fn analyze_starting_hand_ui(hole_cards: &[crate::cards::Card], _betting_round: &crate::betting::BettingRound) -> String {
+fn analyze_starting_hand_ui(
+    hole_cards: &[crate::cards::Card],
+    _betting_round: &crate::betting::BettingRound,
+) -> String {
     if hole_cards.len() != 2 {
         return "🃏 Hand Analysis:\nWaiting for cards...".to_string();
     }
-    
+
     let card1 = &hole_cards[0];
     let card2 = &hole_cards[1];
-    
-    // Check for pocket pairs  
+
+    // Check for pocket pairs
     if card1.rank == card2.rank {
         match card1.rank {
-            crate::cards::Rank::Ace | crate::cards::Rank::King | crate::cards::Rank::Queen | crate::cards::Rank::Jack => {
-                return format!("🔥 EXCELLENT!\nPocket {}s\nPremium starting hand!\nConsider raising.", get_rank_name(card1.rank));
-            },
+            crate::cards::Rank::Ace
+            | crate::cards::Rank::King
+            | crate::cards::Rank::Queen
+            | crate::cards::Rank::Jack => {
+                return format!(
+                    "🔥 EXCELLENT!\nPocket {}s\nPremium starting hand!\nConsider raising.",
+                    get_rank_name(card1.rank)
+                );
+            }
             crate::cards::Rank::Ten | crate::cards::Rank::Nine | crate::cards::Rank::Eight => {
-                return format!("👍 GOOD!\nPocket {}s\nSolid hand - you can\nraise or call confidently.", get_rank_name(card1.rank));
-            },
+                return format!(
+                    "👍 GOOD!\nPocket {}s\nSolid hand - you can\nraise or call confidently.",
+                    get_rank_name(card1.rank)
+                );
+            }
             _ => {
-                return format!("📖 Pocket {}s\nSmall pairs can be tricky.\nConsider the betting action.", get_rank_name(card1.rank));
+                return format!(
+                    "📖 Pocket {}s\nSmall pairs can be tricky.\nConsider the betting action.",
+                    get_rank_name(card1.rank)
+                );
             }
         }
     }
-    
+
     // Check for high cards
-    let high_rank = if card1.rank > card2.rank { card1.rank } else { card2.rank };
-    let low_rank = if card1.rank < card2.rank { card1.rank } else { card2.rank };
-    let suited = card1.suit == card2.suit;
-    
-    if high_rank == crate::cards::Rank::Ace { // Ace
-        if low_rank >= crate::cards::Rank::Ten {
-            return format!("🔥 EXCELLENT!\nAce-{} {}\nPremium hand!\nStrong raise or call.", 
-                  get_rank_name(low_rank), if suited { "suited" } else { "offsuit" });
-        } else if low_rank >= crate::cards::Rank::Seven {
-            return format!("👍 GOOD!\nAce-{} {}\nPlayable hand.\nConsider position & betting.", 
-                  get_rank_name(low_rank), if suited { "suited" } else { "offsuit" });
-        } else {
-            return format!("⚠️ MARGINAL\nAce-{} {}\nWeak hand - be careful\nwith heavy betting.", 
-                  get_rank_name(low_rank), if suited { "suited" } else { "offsuit" });
-        }
-    } else if high_rank >= crate::cards::Rank::Queen && low_rank >= crate::cards::Rank::Ten { // Face cards with 10+
-        return format!("👍 GOOD!\n{}-{} {}\nSolid hand for\nmost situations.", 
-              get_rank_name(high_rank), get_rank_name(low_rank), if suited { "suited" } else { "offsuit" });
-    } else if suited && (rank_value(high_rank) - rank_value(low_rank) <= 4) {
-        return format!("📖 {}-{} suited\nPotential for straights\nand flushes.\nPlay cautiously.", 
-              get_rank_name(high_rank), get_rank_name(low_rank));
+    let high_rank = if card1.rank > card2.rank {
+        card1.rank
     } else {
-        return format!("⚠️ WEAK\n{}-{} {}\nMarginal hand.\nConsider folding to\nheavy betting.", 
-              get_rank_name(high_rank), get_rank_name(low_rank), if suited { "suited" } else { "offsuit" });
+        card2.rank
+    };
+    let low_rank = if card1.rank < card2.rank {
+        card1.rank
+    } else {
+        card2.rank
+    };
+    let suited = card1.suit == card2.suit;
+
+    if high_rank == crate::cards::Rank::Ace {
+        // Ace
+        if low_rank >= crate::cards::Rank::Ten {
+            return format!(
+                "🔥 EXCELLENT!\nAce-{} {}\nPremium hand!\nStrong raise or call.",
+                get_rank_name(low_rank),
+                if suited { "suited" } else { "offsuit" }
+            );
+        } else if low_rank >= crate::cards::Rank::Seven {
+            return format!(
+                "👍 GOOD!\nAce-{} {}\nPlayable hand.\nConsider position & betting.",
+                get_rank_name(low_rank),
+                if suited { "suited" } else { "offsuit" }
+            );
+        } else {
+            return format!(
+                "⚠️ MARGINAL\nAce-{} {}\nWeak hand - be careful\nwith heavy betting.",
+                get_rank_name(low_rank),
+                if suited { "suited" } else { "offsuit" }
+            );
+        }
+    } else if high_rank >= crate::cards::Rank::Queen && low_rank >= crate::cards::Rank::Ten {
+        // Face cards with 10+
+        return format!(
+            "👍 GOOD!\n{}-{} {}\nSolid hand for\nmost situations.",
+            get_rank_name(high_rank),
+            get_rank_name(low_rank),
+            if suited { "suited" } else { "offsuit" }
+        );
+    } else if suited && (rank_value(high_rank) - rank_value(low_rank) <= 4) {
+        return format!(
+            "📖 {}-{} suited\nPotential for straights\nand flushes.\nPlay cautiously.",
+            get_rank_name(high_rank),
+            get_rank_name(low_rank)
+        );
+    } else {
+        return format!(
+            "⚠️ WEAK\n{}-{} {}\nMarginal hand.\nConsider folding to\nheavy betting.",
+            get_rank_name(high_rank),
+            get_rank_name(low_rank),
+            if suited { "suited" } else { "offsuit" }
+        );
     }
 }
 
@@ -437,12 +501,12 @@ fn analyze_starting_hand_ui(hole_cards: &[crate::cards::Card], _betting_round: &
 fn get_rank_name(rank: crate::cards::Rank) -> &'static str {
     match rank {
         crate::cards::Rank::Ace => "Ace",
-        crate::cards::Rank::King => "King", 
+        crate::cards::Rank::King => "King",
         crate::cards::Rank::Queen => "Queen",
         crate::cards::Rank::Jack => "Jack",
         crate::cards::Rank::Ten => "Ten",
         crate::cards::Rank::Nine => "Nine",
-        crate::cards::Rank::Eight => "Eight", 
+        crate::cards::Rank::Eight => "Eight",
         crate::cards::Rank::Seven => "Seven",
         crate::cards::Rank::Six => "Six",
         crate::cards::Rank::Five => "Five",

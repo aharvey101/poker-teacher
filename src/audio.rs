@@ -36,20 +36,14 @@ pub struct AudioPlugin;
 
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_event::<AudioEvent>()
+        app.add_event::<AudioEvent>()
             .init_resource::<AudioSettings>()
-            .add_systems(Update, (
-                handle_audio_events,
-            ));
+            .add_systems(Update, (handle_audio_events,));
     }
 }
 
 // Handle audio events by playing appropriate sounds
-fn handle_audio_events(
-    mut events: EventReader<AudioEvent>,
-    audio_settings: Res<AudioSettings>,
-) {
+fn handle_audio_events(mut events: EventReader<AudioEvent>, audio_settings: Res<AudioSettings>) {
     if !audio_settings.sound_enabled {
         return;
     }
@@ -59,7 +53,7 @@ fn handle_audio_events(
         // In a full implementation, you'd load and play actual audio files
         let (emoji, description) = match event {
             AudioEvent::CardDeal => ("🃏", "Card Deal"),
-            AudioEvent::ChipBet => ("💰", "Chip Bet"), 
+            AudioEvent::ChipBet => ("💰", "Chip Bet"),
             AudioEvent::ButtonClick => ("🔘", "Button Click"),
             AudioEvent::Fold => ("❌", "Fold"),
             AudioEvent::Call => ("📞", "Call"),
@@ -69,8 +63,9 @@ fn handle_audio_events(
             AudioEvent::NewRound => ("🔄", "New Round"),
         };
 
-        info!("🔊 {}: {} (Volume: {:.1})", emoji, description, audio_settings.volume);
+        info!(
+            "🔊 {}: {} (Volume: {:.1})",
+            emoji, description, audio_settings.volume
+        );
     }
 }
-
-

@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use crate::player::{Player, PlayerType};
-use crate::game_state::GameState;
 use crate::ai_player::{make_advanced_ai_decision, AIPlayerComponent};
 use crate::betting_ui::HumanPlayerInput;
+use crate::game_state::GameState;
+use crate::player::{Player, PlayerType};
+use bevy::prelude::*;
 
 // Player betting actions
 #[derive(Debug, Clone, PartialEq)]
@@ -45,25 +45,31 @@ impl BettingRound {
             pot: 0,
         }
     }
-    
+
     pub fn reset_for_new_round(&mut self, player_ids: Vec<u32>) {
         self.current_bet = 0;
         self.players_to_act = player_ids;
         self.betting_complete = false;
-        info!("Betting round reset - players to act: {:?}", self.players_to_act);
+        info!(
+            "Betting round reset - players to act: {:?}",
+            self.players_to_act
+        );
     }
-    
+
     pub fn is_complete(&self) -> bool {
         self.betting_complete || self.players_to_act.is_empty()
     }
-    
+
     pub fn peek_next_player(&self) -> Option<u32> {
         self.players_to_act.last().copied()
     }
-    
+
     pub fn next_player(&mut self) -> Option<u32> {
         if let Some(player_id) = self.players_to_act.pop() {
-            info!("Next player to act: {}, remaining: {:?}", player_id, self.players_to_act);
+            info!(
+                "Next player to act: {}, remaining: {:?}",
+                player_id, self.players_to_act
+            );
             Some(player_id)
         } else {
             self.betting_complete = true;
@@ -76,7 +82,7 @@ impl BettingRound {
 // Simple AI decision making
 fn make_ai_decision(player: &Player, betting_round: &BettingRound) -> PlayerAction {
     let call_amount = betting_round.current_bet.saturating_sub(player.current_bet);
-    
+
     // Very simple AI logic based on chips and call amount
     if call_amount > player.chips {
         PlayerAction::Fold
@@ -101,40 +107,35 @@ pub fn ai_player_system(
 ) {
     // Only process AI actions during betting phases
     match game_state.get() {
-        GameState::PreFlop | GameState::Flop | GameState::Turn | GameState::River => {},
+        GameState::PreFlop | GameState::Flop | GameState::Turn | GameState::River => {}
         _ => return,
     }
-    
+
     if betting_round.betting_complete {
         return;
     }
-    
+
     // Get the next player to act
     if let Some(current_player_id) = betting_round.peek_next_player() {
         // First pass: count active players and find current player
-        let active_players = players.iter()
-            .filter(|(p, _)| !p.has_folded)
-            .count();
-        
+        let active_players = players.iter().filter(|(p, _)| !p.has_folded).count();
+
         let mut current_player_data: Option<(Player, Option<AIPlayerComponent>)> = None;
-        
+
         // Find the current player and clone their data
         for (player, ai_component) in players.iter() {
             if player.id == current_player_id && !player.has_folded {
-                current_player_data = Some((
-                    player.clone(),
-                    ai_component.cloned()
-                ));
+                current_player_data = Some((player.clone(), ai_component.cloned()));
                 break;
             }
         }
-        
+
         if let Some((player_data, ai_comp)) = current_player_data {
             let action = match player_data.player_type {
                 PlayerType::AI => {
                     // Determine position (simplified - just use player ID for now)
                     let position = player_data.id as usize;
-                    
+
                     // Use advanced AI if component is present, otherwise use simple AI
                     if let Some(ai_component) = ai_comp {
                         make_advanced_ai_decision(
@@ -148,7 +149,7 @@ pub fn ai_player_system(
                     } else {
                         make_ai_decision(&player_data, &betting_round)
                     }
-                },
+                }
                 PlayerType::Human => {
                     // Check if human has made a decision
                     if let Some(human_action) = human_input.pending_action.take() {
@@ -157,12 +158,12 @@ pub fn ai_player_system(
                         // Human hasn't decided yet, don't remove them from queue
                         return;
                     }
-                },
+                }
             };
-            
+
             // Only remove the player from the queue after they've made a decision
             betting_round.next_player(); // This pops the player from the queue
-            
+
             // Second pass: apply the action to the actual player
             for (mut player, _) in players.iter_mut() {
                 if player.id == current_player_id {
@@ -234,27 +235,30 @@ pub fn check_betting_round_complete(
     if betting_round.betting_complete {
         return;
     }
-    
-    let active_players: Vec<_> = players
-        .iter()
-        .filter(|p| !p.has_folded)
-        .collect();
-    
+
+    let active_players: Vec<_> = players.iter().filter(|p| !p.has_folded).collect();
+
     // If only one player remains, betting is complete
     if active_players.len() <= 1 {
         betting_round.betting_complete = true;
-        info!("Betting complete - only {} active players remain", active_players.len());
+        info!(
+            "Betting complete - only {} active players remain",
+            active_players.len()
+        );
         return;
     }
-    
+
     // Check if all active players have acted and bets are equal
     let current_bet = betting_round.current_bet;
     let all_bets_equal = active_players
         .iter()
         .all(|p| p.current_bet >= current_bet || p.chips == 0); // Account for all-in
-    
+
     if betting_round.players_to_act.is_empty() && all_bets_equal {
         betting_round.betting_complete = true;
-        info!("Betting round complete - {} players remain", active_players.len());
+        info!(
+            "Betting round complete - {} players remain",
+            active_players.len()
+        );
     }
 }

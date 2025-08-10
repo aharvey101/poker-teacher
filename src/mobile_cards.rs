@@ -1,5 +1,5 @@
+use crate::cards::{Card, Rank, Suit};
 use bevy::prelude::*;
-use crate::cards::{Card, Suit, Rank};
 
 // Constants for mobile card display
 const MOBILE_CARD_WIDTH: f32 = 45.0;
@@ -77,7 +77,7 @@ pub fn render_mobile_cards(
             entity_commands.despawn_recursive();
         }
     }
-    
+
     // Find or create community cards container
     let container = if let Ok(container_entity) = community_container.get_single() {
         container_entity
@@ -85,7 +85,7 @@ pub fn render_mobile_cards(
         // Create community cards container if it doesn't exist
         commands.spawn(MobileCardContainer).id()
     };
-    
+
     // This would be called from game logic to update cards
     // For now, we'll create placeholder cards
     create_mobile_community_cards(&mut commands, container);
@@ -94,13 +94,28 @@ pub fn render_mobile_cards(
 fn create_mobile_community_cards(commands: &mut Commands, container: Entity) {
     // Example community cards (this would come from game state)
     let example_cards = vec![
-        Card { suit: Suit::Spades, rank: Rank::Ace },
-        Card { suit: Suit::Hearts, rank: Rank::Three },
-        Card { suit: Suit::Spades, rank: Rank::Eight },
-        Card { suit: Suit::Spades, rank: Rank::Seven },
-        Card { suit: Suit::Hearts, rank: Rank::Two },
+        Card {
+            suit: Suit::Spades,
+            rank: Rank::Ace,
+        },
+        Card {
+            suit: Suit::Hearts,
+            rank: Rank::Three,
+        },
+        Card {
+            suit: Suit::Spades,
+            rank: Rank::Eight,
+        },
+        Card {
+            suit: Suit::Spades,
+            rank: Rank::Seven,
+        },
+        Card {
+            suit: Suit::Hearts,
+            rank: Rank::Two,
+        },
     ];
-    
+
     commands.entity(container).with_children(|parent| {
         for card in example_cards {
             create_mobile_card_ui(parent, card, false);
@@ -122,7 +137,12 @@ pub fn create_mobile_card_ui(parent: &mut ChildBuilder, card: Card, is_face_down
                 border: UiRect::all(Val::Px(1.0)),
                 ..default()
             },
-            background_color: if is_face_down { MOBILE_CARD_BACK } else { MOBILE_CARD_BG }.into(),
+            background_color: if is_face_down {
+                MOBILE_CARD_BACK
+            } else {
+                MOBILE_CARD_BG
+            }
+            .into(),
             border_color: MOBILE_CARD_BORDER.into(),
             ..default()
         })
@@ -151,7 +171,7 @@ pub fn create_mobile_card_ui(parent: &mut ChildBuilder, card: Card, is_face_down
                             },
                         ));
                     });
-                
+
                 // Center suit symbol (larger)
                 card_parent.spawn(TextBundle::from_section(
                     mobile_suit_symbol(card.suit),
@@ -161,7 +181,7 @@ pub fn create_mobile_card_ui(parent: &mut ChildBuilder, card: Card, is_face_down
                         ..default()
                     },
                 ));
-                
+
                 // Bottom rank and suit (rotated appearance)
                 card_parent
                     .spawn(NodeBundle {
@@ -217,7 +237,8 @@ pub fn create_mobile_card_ui(parent: &mut ChildBuilder, card: Card, is_face_down
                                 })
                                 .with_children(|row_parent| {
                                     for col in 0..2 {
-                                        let symbol = if (row + col) % 2 == 0 { "♠" } else { "♦" };
+                                        let symbol =
+                                            if (row + col) % 2 == 0 { "♠" } else { "♦" };
                                         row_parent.spawn(TextBundle::from_section(
                                             symbol,
                                             TextStyle {
@@ -229,7 +250,7 @@ pub fn create_mobile_card_ui(parent: &mut ChildBuilder, card: Card, is_face_down
                                     }
                                 });
                         }
-                        
+
                         // Add a border pattern
                         back_parent.spawn(TextBundle::from_section(
                             "♦ ♠ ♥ ♣",

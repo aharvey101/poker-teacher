@@ -1,7 +1,7 @@
 #![allow(dead_code)]
-use bevy::prelude::*;
-use crate::player::{Player, PlayerType};
 use crate::game_state::{GameData, GameState};
+use crate::player::{Player, PlayerType};
+use bevy::prelude::*;
 
 // UI Components
 #[derive(Component)]
@@ -55,7 +55,7 @@ pub fn setup_ui(mut commands: Commands) {
                     },
                 ))
                 .insert(PotDisplay);
-            
+
             // Game phase display
             parent
                 .spawn(TextBundle::from_section(
@@ -81,12 +81,12 @@ pub fn setup_player_ui(
     if !game_state.is_changed() {
         return;
     }
-    
+
     // Remove existing player UI only when something changed
     for entity in existing_ui.iter() {
         commands.entity(entity).despawn_recursive();
     }
-    
+
     // Create UI for each player
     for player in players.iter() {
         let (ui_position, ui_color) = match player.player_type {
@@ -101,9 +101,9 @@ pub fn setup_player_ui(
                         height: Val::Percent(10.0),
                         ..default()
                     },
-                    HUMAN_PLAYER_COLOR
+                    HUMAN_PLAYER_COLOR,
                 )
-            },
+            }
             PlayerType::AI => {
                 // AI players at top sides
                 let (left_percent, top_percent) = if player.id == 1 {
@@ -111,7 +111,7 @@ pub fn setup_player_ui(
                 } else {
                     (70.0, 15.0) // Top right
                 };
-                
+
                 (
                     Style {
                         position_type: PositionType::Absolute,
@@ -121,11 +121,11 @@ pub fn setup_player_ui(
                         height: Val::Percent(10.0),
                         ..default()
                     },
-                    AI_PLAYER_COLOR
+                    AI_PLAYER_COLOR,
                 )
             }
         };
-        
+
         commands
             .spawn(NodeBundle {
                 style: Style {
@@ -144,7 +144,7 @@ pub fn setup_player_ui(
                     PlayerType::Human => "You",
                     PlayerType::AI => &format!("AI Player {}", player.id),
                 };
-                
+
                 parent.spawn(TextBundle::from_section(
                     player_name,
                     TextStyle {
@@ -153,7 +153,7 @@ pub fn setup_player_ui(
                         ..default()
                     },
                 ));
-                
+
                 // Chip count
                 parent.spawn(TextBundle::from_section(
                     format!("Chips: ${}", player.chips),
@@ -163,7 +163,7 @@ pub fn setup_player_ui(
                         ..default()
                     },
                 ));
-                
+
                 // Current bet (if any)
                 if player.current_bet > 0 {
                     parent.spawn(TextBundle::from_section(
@@ -175,7 +175,7 @@ pub fn setup_player_ui(
                         },
                     ));
                 }
-                
+
                 // Folded status
                 if player.has_folded {
                     parent.spawn(TextBundle::from_section(
@@ -188,7 +188,9 @@ pub fn setup_player_ui(
                     ));
                 }
             })
-            .insert(PlayerUI { player_id: player.id });
+            .insert(PlayerUI {
+                player_id: player.id,
+            });
     }
 }
 
@@ -212,7 +214,7 @@ pub fn update_game_phase_display(
             GameState::PreFlop => "Pre-Flop",
             GameState::Flop => "Flop",
             GameState::Turn => "Turn",
-            GameState::River => "River", 
+            GameState::River => "River",
             GameState::Showdown => "Showdown",
             GameState::GameOver => "Game Over",
         };
@@ -234,10 +236,10 @@ pub fn update_player_ui(
                 PlayerType::Human => HUMAN_PLAYER_COLOR,
                 PlayerType::AI => AI_PLAYER_COLOR,
             };
-            
+
             let alpha = if is_current_player { 1.0 } else { 0.6 };
             *bg_color = BackgroundColor(base_color.with_a(alpha));
-            
+
             // Update text displays
             for &child in children.iter() {
                 if let Ok(mut text) = text_query.get_mut(child) {

@@ -1,11 +1,14 @@
 #![allow(dead_code)]
-use bevy::prelude::*;
-use bevy::ui::{node_bundles::{NodeBundle, ButtonBundle}, Style};
-use bevy::text::TextStyle;
-use bevy::hierarchy::ChildBuilder;
-use crate::player::{Player, PlayerType};
-use crate::betting::{PlayerAction, BettingRound};
+use crate::betting::{BettingRound, PlayerAction};
 use crate::game_state::GameState;
+use crate::player::{Player, PlayerType};
+use bevy::hierarchy::ChildBuilder;
+use bevy::prelude::*;
+use bevy::text::TextStyle;
+use bevy::ui::{
+    node_bundles::{ButtonBundle, NodeBundle},
+    Style,
+};
 
 // Betting UI Components
 #[derive(Component)]
@@ -19,7 +22,7 @@ pub struct BettingButton {
 #[derive(Component, Debug, Clone, PartialEq)]
 pub enum BettingButtonAction {
     Fold,
-    
+
     Check,
     Call,
     Raise,
@@ -82,54 +85,63 @@ pub fn setup_betting_ui(mut commands: Commands) {
         .with_children(|parent| {
             // Fold button
             create_betting_button(parent, "FOLD", BettingButtonAction::Fold, FOLD_BUTTON_COLOR);
-            
-            // Call/Check button  
+
+            // Call/Check button
             create_betting_button(parent, "CALL", BettingButtonAction::Call, CALL_BUTTON_COLOR);
-            
+
             // Raise controls container
-            parent.spawn(NodeBundle {
-                style: Style {
-                    width: Val::Px(150.0),
-                    height: Val::Px(60.0),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::SpaceBetween,
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                ..default()
-            }).with_children(|raise_parent| {
-                // Raise amount display
-                raise_parent.spawn((
-                    TextBundle::from_section(
-                        "Raise: $20",
-                        TextStyle {
-                            font_size: 16.0,
-                            color: Color::WHITE,
-                            ..default()
-                        },
-                    ),
-                    RaiseAmountDisplay,
-                ));
-                
-                // Raise amount controls
-                raise_parent.spawn(NodeBundle {
+            parent
+                .spawn(NodeBundle {
                     style: Style {
-                        width: Val::Px(120.0),
-                        height: Val::Px(25.0),
-                        flex_direction: FlexDirection::Row,
+                        width: Val::Px(150.0),
+                        height: Val::Px(60.0),
+                        flex_direction: FlexDirection::Column,
                         justify_content: JustifyContent::SpaceBetween,
                         align_items: AlignItems::Center,
                         ..default()
                     },
                     ..default()
-                }).with_children(|controls| {
-                    create_small_button(controls, "-", BettingButtonAction::DecreaseRaise);
-                    create_small_button(controls, "+", BettingButtonAction::IncreaseRaise);
+                })
+                .with_children(|raise_parent| {
+                    // Raise amount display
+                    raise_parent.spawn((
+                        TextBundle::from_section(
+                            "Raise: $20",
+                            TextStyle {
+                                font_size: 16.0,
+                                color: Color::WHITE,
+                                ..default()
+                            },
+                        ),
+                        RaiseAmountDisplay,
+                    ));
+
+                    // Raise amount controls
+                    raise_parent
+                        .spawn(NodeBundle {
+                            style: Style {
+                                width: Val::Px(120.0),
+                                height: Val::Px(25.0),
+                                flex_direction: FlexDirection::Row,
+                                justify_content: JustifyContent::SpaceBetween,
+                                align_items: AlignItems::Center,
+                                ..default()
+                            },
+                            ..default()
+                        })
+                        .with_children(|controls| {
+                            create_small_button(controls, "-", BettingButtonAction::DecreaseRaise);
+                            create_small_button(controls, "+", BettingButtonAction::IncreaseRaise);
+                        });
                 });
-            });
-            
+
             // Raise button
-            create_betting_button(parent, "RAISE", BettingButtonAction::Raise, RAISE_BUTTON_COLOR);
+            create_betting_button(
+                parent,
+                "RAISE",
+                BettingButtonAction::Raise,
+                RAISE_BUTTON_COLOR,
+            );
         })
         .insert(BettingUI);
 }
@@ -163,7 +175,9 @@ fn create_betting_button(
                 },
             ));
         })
-        .insert(BettingButton { action: action.clone() })
+        .insert(BettingButton {
+            action: action.clone(),
+        })
         .insert(action); // Also insert the action as a separate component for easier querying
 }
 
@@ -191,7 +205,9 @@ fn create_small_button(parent: &mut ChildBuilder, text: &str, action: BettingBut
                 },
             ));
         })
-        .insert(BettingButton { action: action.clone() })
+        .insert(BettingButton {
+            action: action.clone(),
+        })
         .insert(action); // Also insert the action as a separate component for easier querying
 }
 
@@ -205,30 +221,30 @@ pub fn manage_betting_ui_visibility(
     if let Ok(mut visibility) = betting_ui_query.get_single_mut() {
         // Show betting UI if:
         // 1. We're in a betting phase
-        // 2. Current player is human 
+        // 2. Current player is human
         // 3. Betting is not complete
         let should_show = matches!(
             game_state.get(),
             GameState::PreFlop | GameState::Flop | GameState::Turn | GameState::River
         ) && !betting_round.betting_complete;
-        
+
         if should_show {
             // Check if current player is human using betting round's next player
             if let Some(current_player_id) = betting_round.peek_next_player() {
                 if let Some(current_player) = players.iter().find(|p| p.id == current_player_id) {
-                    if matches!(current_player.player_type, PlayerType::Human) && !current_player.has_folded {
+                    if matches!(current_player.player_type, PlayerType::Human)
+                        && !current_player.has_folded
+                    {
                         *visibility = Visibility::Visible;
                         return;
                     }
                 }
             }
         }
-        
+
         *visibility = Visibility::Hidden;
     }
 }
-
-
 
 // System to update the raise amount display
 pub fn update_raise_amount_display(
@@ -254,13 +270,15 @@ pub fn update_betting_button_text(
     let current_human_player = players
         .iter()
         .find(|p| p.id == game_data.current_player && matches!(p.player_type, PlayerType::Human));
-    
+
     let Some(human_player) = current_human_player else {
         return;
     };
-    
-    let call_amount = betting_round.current_bet.saturating_sub(human_player.current_bet);
-    
+
+    let call_amount = betting_round
+        .current_bet
+        .saturating_sub(human_player.current_bet);
+
     for (betting_button, children) in &mut button_query {
         if let BettingButtonAction::Check = betting_button.action {
             // Update Check/Call button text

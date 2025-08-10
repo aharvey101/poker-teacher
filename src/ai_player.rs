@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use crate::player::{Player, AIDifficulty};
-use crate::betting::{PlayerAction, BettingRound};
-use crate::poker_rules::evaluate_hand;
+use crate::betting::{BettingRound, PlayerAction};
 use crate::cards::Card;
+use crate::player::{AIDifficulty, Player};
+use crate::poker_rules::evaluate_hand;
+use bevy::prelude::*;
 use rand::Rng;
 
 /// AI personality traits that affect decision making
@@ -38,7 +38,7 @@ impl AIPersonality {
             position_awareness: 0.1,
         }
     }
-    
+
     pub fn intermediate() -> Self {
         Self {
             difficulty: AIDifficulty::Intermediate,
@@ -53,9 +53,9 @@ impl AIPersonality {
 /// Hand strength categories for AI decision making
 #[derive(Debug, PartialEq, PartialOrd)]
 enum HandStrength {
-    Weak,      // High card, low pairs
-    Medium,    // Decent pairs, two pair
-    Strong,    // Three of a kind, straights, flushes
+    Weak,       // High card, low pairs
+    Medium,     // Decent pairs, two pair
+    Strong,     // Three of a kind, straights, flushes
     VeryStrong, // Full house, four of a kind, straight/royal flush
 }
 
@@ -70,24 +70,24 @@ pub fn make_advanced_ai_decision(
 ) -> PlayerAction {
     // Evaluate current hand strength
     let hand_strength = evaluate_hand_strength(&player.hole_cards, community_cards);
-    
+
     // Calculate pot odds
     let pot_odds = calculate_pot_odds(betting_round, player);
-    
+
     // Get base action based on difficulty and hand strength
     let base_action = match personality.difficulty {
         AIDifficulty::Beginner => beginner_decision(player, betting_round, &hand_strength),
         AIDifficulty::Intermediate => intermediate_decision(
-            player, 
-            betting_round, 
-            &hand_strength, 
-            pot_odds, 
-            personality, 
+            player,
+            betting_round,
+            &hand_strength,
+            pot_odds,
+            personality,
             players_in_hand,
-            position
+            position,
         ),
     };
-    
+
     // Add randomness and personality adjustments
     apply_personality_adjustments(base_action, personality, &hand_strength, betting_round)
 }
@@ -98,25 +98,27 @@ fn evaluate_hand_strength(hole_cards: &[Card], community_cards: &[Card]) -> Hand
     if community_cards.len() < 3 {
         return evaluate_preflop_strength(hole_cards);
     }
-    
+
     // Evaluate best 5-card hand
     let evaluation = evaluate_hand(hole_cards, community_cards);
-    
+
     match evaluation.rank {
         crate::poker_rules::HandRank::HighCard => {
-            if evaluation.primary_value >= 12 { // Queen high or better
+            if evaluation.primary_value >= 12 {
+                // Queen high or better
                 HandStrength::Weak
             } else {
                 HandStrength::Weak
             }
-        },
+        }
         crate::poker_rules::HandRank::OnePair => {
-            if evaluation.primary_value >= 10 { // Pair of Jacks or better
+            if evaluation.primary_value >= 10 {
+                // Pair of Jacks or better
                 HandStrength::Medium
             } else {
                 HandStrength::Weak
             }
-        },
+        }
         crate::poker_rules::HandRank::TwoPair => HandStrength::Medium,
         crate::poker_rules::HandRank::ThreeOfAKind => HandStrength::Strong,
         crate::poker_rules::HandRank::Straight => HandStrength::Strong,
@@ -133,31 +135,35 @@ fn evaluate_preflop_strength(hole_cards: &[Card]) -> HandStrength {
     if hole_cards.len() != 2 {
         return HandStrength::Weak;
     }
-    
+
     let card1 = &hole_cards[0];
     let card2 = &hole_cards[1];
-    
+
     let rank1_val = card1.rank as u8;
     let rank2_val = card2.rank as u8;
-    
+
     // Pocket pairs
     if rank1_val == rank2_val {
-        if rank1_val >= 10 { // Pocket 10s or better
+        if rank1_val >= 10 {
+            // Pocket 10s or better
             return HandStrength::Strong;
-        } else if rank1_val >= 7 { // Pocket 7s-9s
+        } else if rank1_val >= 7 {
+            // Pocket 7s-9s
             return HandStrength::Medium;
         } else {
             return HandStrength::Weak;
         }
     }
-    
+
     // High cards
     let high_card = rank1_val.max(rank2_val);
     let low_card = rank1_val.min(rank2_val);
-    
-    if high_card >= 12 && low_card >= 10 { // Face cards
+
+    if high_card >= 12 && low_card >= 10 {
+        // Face cards
         HandStrength::Medium
-    } else if high_card >= 10 { // One face card
+    } else if high_card >= 10 {
+        // One face card
         HandStrength::Weak
     } else {
         HandStrength::Weak
@@ -170,7 +176,7 @@ fn calculate_pot_odds(betting_round: &BettingRound, player: &Player) -> f32 {
     if call_amount == 0 {
         return 0.0; // No cost to continue
     }
-    
+
     let pot_after_call = betting_round.pot + call_amount;
     call_amount as f32 / pot_after_call as f32
 }
@@ -182,17 +188,17 @@ fn beginner_decision(
     hand_strength: &HandStrength,
 ) -> PlayerAction {
     let call_amount = betting_round.current_bet.saturating_sub(player.current_bet);
-    
+
     // Can't afford to call
     if call_amount > player.chips {
         return PlayerAction::Fold;
     }
-    
+
     // Free to check
     if call_amount == 0 {
         return PlayerAction::Check;
     }
-    
+
     // Simple decision based on hand strength and cost
     match hand_strength {
         HandStrength::VeryStrong => {
@@ -203,7 +209,7 @@ fn beginner_decision(
             } else {
                 PlayerAction::Call
             }
-        },
+        }
         HandStrength::Strong => {
             // Call or small raise with strong hands
             if call_amount <= player.chips / 6 {
@@ -211,7 +217,7 @@ fn beginner_decision(
             } else {
                 PlayerAction::Fold
             }
-        },
+        }
         HandStrength::Medium => {
             // Only call if cheap
             if call_amount <= player.chips / 10 {
@@ -219,7 +225,7 @@ fn beginner_decision(
             } else {
                 PlayerAction::Fold
             }
-        },
+        }
         HandStrength::Weak => {
             // Fold weak hands unless very cheap
             if call_amount <= betting_round.min_raise / 2 {
@@ -227,7 +233,7 @@ fn beginner_decision(
             } else {
                 PlayerAction::Fold
             }
-        },
+        }
     }
 }
 
@@ -242,12 +248,12 @@ fn intermediate_decision(
     position: usize,
 ) -> PlayerAction {
     let call_amount = betting_round.current_bet.saturating_sub(player.current_bet);
-    
+
     // Can't afford to call
     if call_amount > player.chips {
         return PlayerAction::Fold;
     }
-    
+
     // Free to check
     if call_amount == 0 {
         return match hand_strength {
@@ -259,19 +265,24 @@ fn intermediate_decision(
                 } else {
                     PlayerAction::Check
                 }
-            },
+            }
             _ => PlayerAction::Check,
         };
     }
-    
+
     // Calculate hand strength multiplier based on position and players
-    let position_factor = if position > players_in_hand / 2 { 1.2 } else { 0.9 };
+    let position_factor = if position > players_in_hand / 2 {
+        1.2
+    } else {
+        0.9
+    };
     let player_factor = if players_in_hand <= 3 { 1.1 } else { 0.95 };
-    
+
     // Pot odds decision making
     let required_equity = pot_odds;
-    let estimated_equity = estimate_hand_equity(hand_strength, players_in_hand) * position_factor * player_factor;
-    
+    let estimated_equity =
+        estimate_hand_equity(hand_strength, players_in_hand) * position_factor * player_factor;
+
     match hand_strength {
         HandStrength::VeryStrong => {
             // Always play very strong hands aggressively
@@ -281,7 +292,7 @@ fn intermediate_decision(
             } else {
                 PlayerAction::Call
             }
-        },
+        }
         HandStrength::Strong => {
             if estimated_equity > required_equity * 0.8 {
                 // Call or raise with good odds
@@ -298,21 +309,21 @@ fn intermediate_decision(
             } else {
                 PlayerAction::Fold
             }
-        },
+        }
         HandStrength::Medium => {
             if estimated_equity > required_equity * 1.2 {
                 PlayerAction::Call
             } else {
                 PlayerAction::Fold
             }
-        },
+        }
         HandStrength::Weak => {
             if estimated_equity > required_equity * 1.5 && call_amount <= betting_round.min_raise {
                 PlayerAction::Call
             } else {
                 PlayerAction::Fold
             }
-        },
+        }
     }
 }
 
@@ -324,7 +335,7 @@ fn estimate_hand_equity(hand_strength: &HandStrength, players_in_hand: usize) ->
         HandStrength::Strong => 0.65,
         HandStrength::VeryStrong => 0.85,
     };
-    
+
     // Adjust for number of opponents
     let opponent_factor = match players_in_hand {
         2 => 1.0,
@@ -332,7 +343,7 @@ fn estimate_hand_equity(hand_strength: &HandStrength, players_in_hand: usize) ->
         4 => 0.8,
         _ => 0.7,
     };
-    
+
     base_equity * opponent_factor
 }
 
@@ -344,7 +355,7 @@ fn apply_personality_adjustments(
     betting_round: &BettingRound,
 ) -> PlayerAction {
     let mut rng = rand::thread_rng();
-    
+
     // Add some randomness (5-15% chance to deviate)
     if rng.r#gen::<f32>() < 0.1 {
         match base_action {
@@ -353,24 +364,27 @@ fn apply_personality_adjustments(
                     // Sometimes raise instead of call
                     return PlayerAction::Raise(betting_round.min_raise);
                 }
-            },
+            }
             PlayerAction::Fold => {
-                if personality.tightness < 0.3 && rng.r#gen::<f32>() < (1.0 - personality.tightness) {
+                if personality.tightness < 0.3 && rng.r#gen::<f32>() < (1.0 - personality.tightness)
+                {
                     // Sometimes call instead of fold (loose play)
                     return PlayerAction::Call;
                 }
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
-    
+
     // Occasional bluffs with weak hands
-    if matches!(hand_strength, HandStrength::Weak) && rng.r#gen::<f32>() < personality.bluff_frequency {
+    if matches!(hand_strength, HandStrength::Weak)
+        && rng.r#gen::<f32>() < personality.bluff_frequency
+    {
         if betting_round.current_bet == 0 {
             return PlayerAction::Raise(betting_round.min_raise);
         }
     }
-    
+
     base_action
 }
 

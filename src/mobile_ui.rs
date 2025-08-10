@@ -1,6 +1,6 @@
-use bevy::prelude::*;
-use crate::betting_ui::{BettingButtonAction, BettingButton};
+use crate::betting_ui::{BettingButton, BettingButtonAction};
 use crate::player::Player;
+use bevy::prelude::*;
 
 // Mobile-optimized UI components
 #[derive(Component)]
@@ -50,10 +50,10 @@ pub fn setup_mobile_ui(mut commands: Commands) {
         .with_children(|parent| {
             // Top section: Game info and opponent players (20% of screen)
             create_mobile_top_section(parent);
-            
+
             // Middle section: Community cards and pot (50% of screen)
             create_mobile_middle_section(parent);
-            
+
             // Bottom section: Player hand and controls (30% of screen)
             create_mobile_bottom_section(parent);
         });
@@ -77,10 +77,10 @@ fn create_mobile_top_section(parent: &mut ChildBuilder) {
         .with_children(|top_parent| {
             // AI Player 1 (left)
             create_mobile_ai_player_card(top_parent, 1, FlexDirection::Row);
-            
+
             // Center: Game phase and pot
             create_mobile_game_info(top_parent);
-            
+
             // AI Player 2 (right)
             create_mobile_ai_player_card(top_parent, 2, FlexDirection::RowReverse);
         });
@@ -127,7 +127,7 @@ fn create_mobile_middle_section(parent: &mut ChildBuilder) {
                         (crate::cards::Suit::Clubs, crate::cards::Rank::Jack),
                         (crate::cards::Suit::Hearts, crate::cards::Rank::Ten),
                     ];
-                    
+
                     for (suit, rank) in community_cards.iter() {
                         community_parent
                             .spawn(NodeBundle {
@@ -156,7 +156,7 @@ fn create_mobile_middle_section(parent: &mut ChildBuilder) {
                                         ..default()
                                     },
                                 ));
-                                
+
                                 // Center suit symbol
                                 card_parent.spawn(TextBundle::from_section(
                                     crate::mobile_cards::mobile_suit_symbol(*suit),
@@ -166,7 +166,7 @@ fn create_mobile_middle_section(parent: &mut ChildBuilder) {
                                         ..default()
                                     },
                                 ));
-                                
+
                                 // Bottom rank (rotated)
                                 card_parent.spawn(TextBundle::from_section(
                                     crate::mobile_cards::mobile_rank_symbol(*rank),
@@ -187,7 +187,7 @@ fn create_mobile_middle_section(parent: &mut ChildBuilder) {
                             });
                     }
                 });
-            
+
             // Teaching/hints area (collapsible)
             create_mobile_teaching_panel(middle_parent);
         });
@@ -208,14 +208,18 @@ fn create_mobile_bottom_section(parent: &mut ChildBuilder) {
         .with_children(|bottom_parent| {
             // Player cards area (15% of bottom section)
             create_mobile_player_cards_area(bottom_parent);
-            
+
             // Betting controls (85% of bottom section)
             create_mobile_betting_controls(bottom_parent);
         })
         .insert(MobileBettingPanel);
 }
 
-fn create_mobile_ai_player_card(parent: &mut ChildBuilder, player_id: u32, direction: FlexDirection) {
+fn create_mobile_ai_player_card(
+    parent: &mut ChildBuilder,
+    player_id: u32,
+    direction: FlexDirection,
+) {
     parent
         .spawn(NodeBundle {
             style: Style {
@@ -280,7 +284,7 @@ fn create_mobile_ai_player_card(parent: &mut ChildBuilder, player_id: u32, direc
                                             row_parent.spawn(TextBundle::from_section(
                                                 symbol,
                                                 TextStyle {
-                                                    font_size: 8.0,  // Smaller for AI cards
+                                                    font_size: 8.0, // Smaller for AI cards
                                                     color: Color::rgb(0.7, 0.7, 0.9),
                                                     ..default()
                                                 },
@@ -298,7 +302,7 @@ fn create_mobile_ai_player_card(parent: &mut ChildBuilder, player_id: u32, direc
                             });
                     }
                 });
-            
+
             // Player info
             player_parent
                 .spawn(NodeBundle {
@@ -319,12 +323,12 @@ fn create_mobile_ai_player_card(parent: &mut ChildBuilder, player_id: u32, direc
                             ..default()
                         },
                     ));
-                    
+
                     info_parent.spawn(TextBundle::from_section(
                         "$1000",
                         TextStyle {
                             font_size: MOBILE_TEXT_SIZE_MEDIUM, // Larger for better readability
-                            color: Color::rgb(0.9, 0.9, 0.3), // Gold color for chip amounts
+                            color: Color::rgb(0.9, 0.9, 0.3),   // Gold color for chip amounts
                             ..default()
                         },
                     ));
@@ -352,27 +356,27 @@ fn create_mobile_game_info(parent: &mut ChildBuilder) {
                 "POT",
                 TextStyle {
                     font_size: MOBILE_TEXT_SIZE_MEDIUM, // Larger for better visibility
-                    color: MOBILE_TEXT_PRIMARY, // Higher contrast
+                    color: MOBILE_TEXT_PRIMARY,         // Higher contrast
                     ..default()
                 },
             ));
-            
+
             // Pot amount with enhanced styling
             info_parent.spawn(TextBundle::from_section(
                 "$20",
                 TextStyle {
-                    font_size: 28.0, // Even larger for prominence
+                    font_size: 28.0,                  // Even larger for prominence
                     color: Color::rgb(0.2, 0.9, 0.3), // Brighter green for better visibility
                     ..default()
                 },
             ));
-            
+
             // Game phase with better visibility
             info_parent.spawn(TextBundle::from_section(
                 "River",
                 TextStyle {
                     font_size: MOBILE_TEXT_SIZE_MEDIUM, // Larger than before
-                    color: MOBILE_TEXT_PRIMARY, // Higher contrast
+                    color: MOBILE_TEXT_PRIMARY,         // Higher contrast
                     ..default()
                 },
             ));
@@ -459,7 +463,7 @@ fn create_mobile_player_cards_area(parent: &mut ChildBuilder) {
                                     for col in 0..2 {
                                         let symbol = match (row + col) % 4 {
                                             0 => "♠",
-                                            1 => "♥", 
+                                            1 => "♥",
                                             2 => "♦",
                                             _ => "♣",
                                         };
@@ -515,11 +519,26 @@ fn create_mobile_betting_controls(parent: &mut ChildBuilder) {
                     ..default()
                 })
                 .with_children(|buttons_parent| {
-                    create_mobile_betting_button(buttons_parent, "FOLD", BettingButtonAction::Fold, MOBILE_ACCENT_RED);
-                    create_mobile_betting_button(buttons_parent, "CALL", BettingButtonAction::Call, MOBILE_ACCENT_GREEN);
-                    create_mobile_betting_button(buttons_parent, "RAISE", BettingButtonAction::Raise, MOBILE_ACCENT_BLUE);
+                    create_mobile_betting_button(
+                        buttons_parent,
+                        "FOLD",
+                        BettingButtonAction::Fold,
+                        MOBILE_ACCENT_RED,
+                    );
+                    create_mobile_betting_button(
+                        buttons_parent,
+                        "CALL",
+                        BettingButtonAction::Call,
+                        MOBILE_ACCENT_GREEN,
+                    );
+                    create_mobile_betting_button(
+                        buttons_parent,
+                        "RAISE",
+                        BettingButtonAction::Raise,
+                        MOBILE_ACCENT_BLUE,
+                    );
                 });
-            
+
             // Raise amount controls
             create_mobile_raise_controls(betting_parent);
         });
@@ -544,10 +563,11 @@ fn create_mobile_betting_button(
             },
             background_color: color.into(),
             border_color: Color::rgb(
-                (color.r() + 0.2).min(1.0), 
-                (color.g() + 0.2).min(1.0), 
-                (color.b() + 0.2).min(1.0)
-            ).into(), // Lighter border for better definition
+                (color.r() + 0.2).min(1.0),
+                (color.g() + 0.2).min(1.0),
+                (color.b() + 0.2).min(1.0),
+            )
+            .into(), // Lighter border for better definition
             ..default()
         })
         .with_children(|button| {
@@ -578,8 +598,12 @@ fn create_mobile_raise_controls(parent: &mut ChildBuilder) {
         })
         .with_children(|raise_parent| {
             // Decrease button
-            create_mobile_raise_adjust_button(raise_parent, "-$5", BettingButtonAction::DecreaseRaise);
-            
+            create_mobile_raise_adjust_button(
+                raise_parent,
+                "-$5",
+                BettingButtonAction::DecreaseRaise,
+            );
+
             // Amount display with enhanced styling
             raise_parent
                 .spawn(NodeBundle {
@@ -600,15 +624,19 @@ fn create_mobile_raise_controls(parent: &mut ChildBuilder) {
                     amount_parent.spawn(TextBundle::from_section(
                         "$20",
                         TextStyle {
-                            font_size: 20.0, // Larger text for better visibility
+                            font_size: 20.0,                  // Larger text for better visibility
                             color: Color::rgb(0.9, 0.9, 0.3), // Gold color like chip amounts
                             ..default()
                         },
                     ));
                 });
-            
+
             // Increase button
-            create_mobile_raise_adjust_button(raise_parent, "+$5", BettingButtonAction::IncreaseRaise);
+            create_mobile_raise_adjust_button(
+                raise_parent,
+                "+$5",
+                BettingButtonAction::IncreaseRaise,
+            );
         });
 }
 
@@ -620,7 +648,7 @@ fn create_mobile_raise_adjust_button(
     parent
         .spawn(ButtonBundle {
             style: Style {
-                width: Val::Px(80.0), // Slightly wider for better touch target
+                width: Val::Px(80.0),  // Slightly wider for better touch target
                 height: Val::Px(50.0), // Taller for better touch target
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,

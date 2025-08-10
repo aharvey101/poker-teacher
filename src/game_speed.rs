@@ -29,7 +29,8 @@ pub struct GameTimer {
 impl GameTimer {
     pub fn update_speed(&mut self, speed_multiplier: f32) {
         let new_duration = self.base_duration / speed_multiplier.max(0.1);
-        self.timer.set_duration(std::time::Duration::from_secs_f32(new_duration));
+        self.timer
+            .set_duration(std::time::Duration::from_secs_f32(new_duration));
     }
 }
 
@@ -38,15 +39,10 @@ pub struct GameSpeedPlugin;
 
 impl Plugin for GameSpeedPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .init_resource::<GameSpeed>()
-            .add_systems(Update, (
-                update_game_timers,
-            ));
+        app.init_resource::<GameSpeed>()
+            .add_systems(Update, (update_game_timers,));
     }
 }
-
-
 
 // System to update all game timers based on current speed
 fn update_game_timers(
@@ -57,13 +53,13 @@ fn update_game_timers(
     if game_speed.is_paused {
         return;
     }
-    
+
     for mut game_timer in timer_query.iter_mut() {
         // Update timer speed if it changed
         if game_speed.is_changed() {
             game_timer.update_speed(game_speed.speed_multiplier);
         }
-        
+
         // Tick the timer
         game_timer.timer.tick(time.delta());
     }
